@@ -1,4 +1,17 @@
 #! /usr/bin/env python3
 
-import cli_args
+import cli_args, hostlist, os
 
+args = cli_args.parse_args()
+hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
+
+substring = args[0].substring
+if substring is None:
+    matched_hosts = hosts
+else:
+    matched_hosts = {}
+    for display_name in hosts:
+        if substring in display_name:
+            matched_hosts[display_name] = hosts[display_name]
+
+print(list(matched_hosts.keys()))
