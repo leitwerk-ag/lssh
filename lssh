@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import cli_args, hostlist, os
+import cli_args, hostlist, os, subprocess, sys
 
 args = cli_args.parse_args()
 hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
@@ -14,4 +14,11 @@ else:
         if substring in display_name:
             matched_hosts[display_name] = hosts[display_name]
 
-print(list(matched_hosts.keys()))
+if len(matched_hosts) == 0:
+    print("No matching hosts for substring `" + substring + "' found")
+    sys.exit(1)
+
+if len(matched_hosts) == 1:
+    display_name = list(matched_hosts.keys())[0]
+    print(display_name)
+    subprocess.run(["ssh", display_name])
