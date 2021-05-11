@@ -8,4 +8,4 @@ parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode. 
 
 parser.add_argument('substring', metavar='[user@]substring', nargs='?', help='(Part of) the hostname to connect to, with an additional username if needed.')
 
-parser.parse_args()
+parser.parse_known_args()
