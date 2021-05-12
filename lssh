@@ -43,4 +43,4 @@ else:
     selected = options[choice[0]][1][choice[1]]
 
 print(selected)
-subprocess.run(["ssh", selected])
+sys.exit(subprocess.run(["ssh", selected]).returncode)
