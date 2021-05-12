@@ -1,4 +1,4 @@
-import cli_args, hostlist, os, subprocess, sys, tui_dialog
+import cli_args, hostlist, os, subprocess, sys, tui_dialog, xdg
 
 def group_options_by_customer(hosts):
     map_customer = {}
