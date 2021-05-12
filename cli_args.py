@@ -8,5 +8,6 @@ def parse_args():
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose mode. Enables printing the resulting ssh command line before connecting.')
 
     parser.add_argument('substring', metavar='[user@]substring', nargs='?', help='(Part of) the hostname to connect to, with an additional username if needed.')
+    parser.add_argument('additional_substrings', metavar='substring', nargs='*', help='Additional parts of the hostname to connect to, which further restrict the search')
 
     return parser.parse_known_args()

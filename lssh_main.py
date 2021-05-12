@@ -15,17 +15,43 @@ def group_options_by_customer(hosts):
         return (customer, values)
     return [make_option(c) for c in customers]
 
+def matches_substring(display_name, substring):
+    return substring in display_name
+
+def matches_all_substrings(display_name, substring, additional_substrings):
+    if not matches_substring(display_name, substring):
+        return False
+    for substr in additional_substrings:
+        if not matches_substring(display_name, substr):
+            return False
+    return True
+
+def ensure_no_usernames(substrings):
+    for substr in substrings:
+        if '@' in substr:
+            print("Only the first substring may contain a username")
+            sys.exit(1)
+
+def split_user_from_substring(s):
+    idx = s.find('@')
+    if idx == -1:
+        # contains no username
+        return (None, s)
+    return (s[0:idx], s[idx+1:])
+
 def main():
     args = cli_args.parse_args()
     hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
 
-    substring = args[0].substring
+    user, substring = split_user_from_substring(args[0].substring)
+    additional_substrings = args[0].additional_substrings
+    ensure_no_usernames(additional_substrings)
     if substring is None:
         matched_hosts = hosts
     else:
         matched_hosts = {}
         for display_name in hosts:
-            if substring in display_name:
+            if matches_all_substrings(display_name, substring, additional_substrings):
                 matched_hosts[display_name] = hosts[display_name]
 
     if len(matched_hosts) == 0:
