@@ -1,4 +1,4 @@
-import itertools, os, shlex, subprocess, sys, time, xdg
+import itertools, os, replay, shlex, subprocess, sys, time, xdg
 from lssh import cli_args, hostlist, tui_dialog
 
 def group_options_by_customer(hosts):
@@ -61,11 +61,21 @@ def create_recording_directory(hostname):
 
 def main():
     args = cli_args.parse_args()
-    hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
 
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
+    if args.replay or args.time is not None:
+        if substring is None:
+            all_substrings = []
+        else:
+            all_substrings = [substring] + additional_substrings
+        replay.replay(all_substrings, args.time)
+    else:
+        connect(args, user, substring, additional_substrings)
+
+def connect(args, user, substring, additional_substrings):
+    hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
     if substring is None:
         matched_hosts = hosts
     else:

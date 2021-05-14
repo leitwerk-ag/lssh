@@ -2,6 +2,36 @@
 
 import py_cui
 
+def flat_option_dialog(options, heading):
+    '''
+    Let the user choose an element from a list.
+
+    Arguments:
+      options:  A list of strings containing the options
+      heading:  A header string to show above the dialog
+
+    Return:     Returns the index of the chose element or None if the user
+                aborted during selection.
+    '''
+    root = py_cui.PyCUI(1, 1)
+    result = [None] # array is used to make the value mutable for the return_entry function
+
+    def return_entry():
+        idx = menu.get_selected_item_index()
+        result[0] = idx
+        root.stop()
+
+    menu = root.add_scroll_menu(heading, 0, 0)
+    menu.add_item_list(options)
+    menu.set_color(py_cui.WHITE_ON_BLACK)
+    menu.set_selected_color(py_cui.BLACK_ON_WHITE)
+    menu.add_key_command(py_cui.keys.KEY_ENTER, return_entry)
+
+    root.move_focus(menu)
+
+    root.start()
+    return result[0]
+
 def hierarchical_option_dialog(options, heading_left, heading_right):
     '''
     Let the user choose an element from a two-layer hierarchical option tree.
