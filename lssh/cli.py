@@ -1,4 +1,4 @@
-import os, subprocess, sys, xdg
+import itertools, os, shlex, subprocess, sys, time, xdg
 from lssh import cli_args, hostlist, tui_dialog
 
 def group_options_by_customer(hosts):
@@ -41,6 +41,23 @@ def split_user_from_substring(s):
         # contains no username
         return (None, s)
     return (s[0:idx], s[idx+1:])
+
+def create_recording_directory(hostname):
+    recordings_basedir = xdg.xdg_data_home() / 'lssh' / 'recordings'
+    os.makedirs(recordings_basedir, exist_ok=True)
+    name = time.strftime("%Y-%m-%d_%H-%M-%S") + '_' + hostname
+    try:
+        d = recordings_basedir / name
+        os.mkdir(d)
+        return d
+    except FileExistsError:
+        for i in itertools.count(2):
+            try:
+                d = recordings_basedir / (name + '_' + str(i))
+                os.mkdir(d)
+                return d
+            except FileExistsError:
+                pass
 
 def main():
     args = cli_args.parse_args()
@@ -89,4 +106,7 @@ def main():
                 command += ['-' + opt, param]
     user_prefix = "" if user is None else user + "@"
     command.append(user_prefix + selected)
-    sys.exit(subprocess.run(command).returncode)
+    rec_dir = create_recording_directory(selected)
+    ssh_commandline = ' '.join([shlex.quote(arg) for arg in command])
+    script_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
+    sys.exit(subprocess.run(script_command).returncode)
