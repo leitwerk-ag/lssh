@@ -46,8 +46,8 @@ def main():
     args = cli_args.parse_args()
     hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
 
-    user, substring = split_user_from_substring(args[0].substring)
-    additional_substrings = args[0].additional_substrings
+    user, substring = split_user_from_substring(args.substring)
+    additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
     if substring is None:
         matched_hosts = hosts
