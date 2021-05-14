@@ -76,5 +76,17 @@ def main():
         selected = options[choice[0]][1][choice[1]]
 
     print(selected)
+    options_dict = vars(args)
+    command = ['ssh']
+    for opt in cli_args.parameterless_options:
+        count = options_dict[opt]
+        if count is not None:
+            command.append('-' + count * opt)
+    for opt in cli_args.parameter_options:
+        parameters = options_dict[opt]
+        if parameters is not None:
+            for param in parameters:
+                command += ['-' + opt, param]
     user_prefix = "" if user is None else user + "@"
-    sys.exit(subprocess.run(["ssh", user_prefix + selected]).returncode)
+    command.append(user_prefix + selected)
+    sys.exit(subprocess.run(command).returncode)
