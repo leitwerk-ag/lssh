@@ -34,6 +34,8 @@ def ensure_no_usernames(substrings):
             sys.exit(1)
 
 def split_user_from_substring(s):
+    if s is None:
+        return (None, None)
     idx = s.find('@')
     if idx == -1:
         # contains no username
@@ -56,7 +58,12 @@ def main():
                 matched_hosts[display_name] = hosts[display_name]
 
     if len(matched_hosts) == 0:
-        print("No matching hosts for substring `" + substring + "' found")
+        if len(hosts) == 0:
+            print("No hosts defined in the configuration")
+        elif len(additional_substrings) == 0:
+            print("No matching hosts for substring `" + substring + "' found")
+        else:
+            print("No matching hosts for the given substrings found")
         sys.exit(1)
     elif len(matched_hosts) == 1:
         selected = list(matched_hosts.keys())[0]
