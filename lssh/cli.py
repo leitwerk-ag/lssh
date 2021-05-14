@@ -102,7 +102,6 @@ def connect(args, user, substring, additional_substrings):
             sys.exit(1)
         selected = options[choice[0]][1][choice[1]]
 
-    print(selected)
     options_dict = vars(args)
     command = ['ssh']
     for opt in cli_args.parameterless_options:
@@ -114,9 +113,13 @@ def connect(args, user, substring, additional_substrings):
         if parameters is not None:
             for param in parameters:
                 command += ['-' + opt, param]
+    if args.verbose is not None:
+        command.append('-' + args.verbose * 'v')
     user_prefix = "" if user is None else user + "@"
     command.append(user_prefix + selected)
     rec_dir = create_recording_directory(selected)
     ssh_commandline = ' '.join([shlex.quote(arg) for arg in command])
+    if args.verbose is not None:
+        print("executing command: " + ssh_commandline)
     script_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
     sys.exit(subprocess.run(script_command).returncode)
