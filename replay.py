@@ -36,6 +36,7 @@ def replay(substrings, timestamp):
     elif len(matching_rec_files) == 1:
         replay_recording(matching_rec_files[0])
     else:
+        matching_rec_files.sort()
         choice_idx = tui_dialog.flat_option_dialog(matching_rec_files, "Please choose a recording to replay")
         if choice_idx is None:
             print("No recording has been selected")
