@@ -68,4 +68,5 @@ def main():
         selected = options[choice[0]][1][choice[1]]
 
     print(selected)
-    sys.exit(subprocess.run(["ssh", selected]).returncode)
+    user_prefix = "" if user is None else user + "@"
+    sys.exit(subprocess.run(["ssh", user_prefix + selected]).returncode)
