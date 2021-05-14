@@ -3,6 +3,8 @@ from os import environ
 from sys import argv
 from xdg import xdg_cache_home
 
+from lssh import recordings
+
 # To activate tab completion in bash:
 # complete -C 'lssh __complete__' lssh
 
@@ -32,6 +34,11 @@ def contains_all_substrings(name, substrings):
             return False
     return True
 
+def timestamp_completions(substrings):
+    def matches(entry):
+        return contains_all_substrings(entry[2], substrings)
+    return [entry[1] for entry in recordings.find_recording_files() if matches(entry)]
+
 def main():
     if len(argv) < 5:
         return
@@ -40,7 +47,7 @@ def main():
 
     if previous_arg == '--timestamp':
         # timestamp completion
-        choices = []
+        choices = timestamp_completions(find_substrings())
     elif current_arg.startswith('-'):
         # option completion
         choices = ['--help', '--replay', '--timestamp', '--verbose']
