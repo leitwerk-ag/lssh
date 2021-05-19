@@ -39,15 +39,16 @@ def timestamp_completions(substrings):
         return contains_all_substrings(entry[2], substrings)
     return [entry[1] for entry in recordings.find_recording_files() if matches(entry)]
 
-def parse_hosts(hosts_dir, host_cache_path):
+def parse_hosts(hosts_dir):
     from json import dump
     from lssh.hostlist import load_config
 
     config = load_config(hosts_dir)
     names = [h.display_name for h in config.values()]
-    with open(host_cache_path, "w") as f:
-        dump(names, f)
     return names
+
+def host_cache_path():
+    return xdg_cache_home() / 'lssh' / 'hosts.json'
 
 def main(hosts_dir):
     if len(argv) < 5:
@@ -63,13 +64,12 @@ def main(hosts_dir):
         choices = ['--help', '--replay', '--timestamp', '--update-hosts', '--verbose']
     else:
         # substring completion
-        host_cache_path = xdg_cache_home() / 'lssh' / 'hosts.json'
         try:
             try:
-                with open(host_cache_path, 'r') as f:
+                with open(host_cache_path(), 'r') as f:
                     hosts = load(f)
             except FileNotFoundError:
-                hosts = parse_hosts(hosts_dir, host_cache_path)
+                hosts = parse_hosts(hosts_dir)
             substrings = find_substrings()
             choices = [h for h in hosts if contains_all_substrings(h, substrings)]
         except FileNotFoundError:

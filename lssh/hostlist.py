@@ -1,10 +1,23 @@
-import os, re
+import json, os, re
+
+from lssh.tabcomplete import host_cache_path
 
 class HostEntry:
     def __init__(self, display_name, customer):
         self.display_name = display_name
         self.customer = customer
         self.keywords = set()
+
+def update_display_name_cache(entries, newest_timestamp):
+    try:
+        cache_stat = os.stat(host_cache_path())
+        need_update = cache_stat.st_mtime < newest_timestamp
+    except FileNotFoundError:
+        need_update = True
+    if need_update:
+        names = [h.display_name for h in entries.values()]
+        with open(host_cache_path(), "w") as f:
+            json.dump(names, f)
 
 def load_config(path):
     entries = {}
@@ -19,10 +32,15 @@ def load_config(path):
                     entries[hostname] = HostEntry(hostname, customer)
     files = os.listdir(path)
     files.sort()
+    newest_timestamp = 0
     for filename in files:
         name = path + "/" + filename
         if filename.endswith(".txt") and os.path.isfile(name):
             with open(name, "r") as f:
                 for line in f:
                     handle_line(line, filename[0:-4])
+            stat = os.stat(name)
+            newest_timestamp = max(newest_timestamp, stat.st_mtime)
+    update_display_name_cache(entries, newest_timestamp)
+
     return entries

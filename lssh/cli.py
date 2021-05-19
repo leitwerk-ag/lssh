@@ -74,10 +74,10 @@ def main(hosts_dir, update_hosts):
             all_substrings = [substring] + additional_substrings
         replay.replay(all_substrings, args.time)
     else:
-        connect(args, user, substring, additional_substrings)
+        connect(args, user, substring, additional_substrings, hosts_dir)
 
-def connect(args, user, substring, additional_substrings):
-    hosts = hostlist.load_config(os.environ['HOME'] + '/.local/share/lssh/hosts')
+def select_host(substring, additional_substrings, hosts_dir):
+    hosts = hostlist.load_config(hosts_dir)
     if substring is None:
         matched_hosts = hosts
     else:
@@ -103,6 +103,10 @@ def connect(args, user, substring, additional_substrings):
             print("No host has been selected")
             sys.exit(1)
         selected = options[choice[0]][1][choice[1]]
+    return selected
+
+def connect(args, user, substring, additional_substrings, hosts_dir):
+    selected = select_host(substring, additional_substrings, hosts_dir)
 
     options_dict = vars(args)
     command = ['ssh']
