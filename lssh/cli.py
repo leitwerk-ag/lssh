@@ -59,13 +59,15 @@ def create_recording_directory(hostname):
             except FileExistsError:
                 pass
 
-def main():
+def main(hosts_dir, update_hosts):
     args = cli_args.parse_args()
 
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
-    if args.replay or args.time is not None:
+    if args.update:
+        update_hosts()
+    elif args.replay or args.time is not None:
         if substring is None:
             all_substrings = []
         else:

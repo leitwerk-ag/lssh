@@ -7,10 +7,10 @@
 
 import sys
 
-def main():
+def main(hosts_dir, update_hosts):
     if len(sys.argv) >= 2 and sys.argv[1] == '__complete__':
         from lssh import tabcomplete
-        tabcomplete.main()
+        tabcomplete.main(hosts_dir)
     else:
         from lssh import cli
-        cli.main()
+        cli.main(hosts_dir, update_hosts)

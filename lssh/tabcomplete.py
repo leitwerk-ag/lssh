@@ -39,7 +39,7 @@ def timestamp_completions(substrings):
         return contains_all_substrings(entry[2], substrings)
     return [entry[1] for entry in recordings.find_recording_files() if matches(entry)]
 
-def main():
+def main(hosts_dir):
     if len(argv) < 5:
         return
     current_arg = argv[3]
@@ -50,7 +50,7 @@ def main():
         choices = timestamp_completions(find_substrings())
     elif current_arg.startswith('-'):
         # option completion
-        choices = ['--help', '--replay', '--timestamp', '--verbose']
+        choices = ['--help', '--replay', '--timestamp', '--update-hosts', '--verbose']
     else:
         host_cache_path = xdg_cache_home() / 'lssh' / 'hosts.json'
         try:
