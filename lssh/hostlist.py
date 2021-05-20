@@ -6,7 +6,7 @@ class HostEntry:
     def __init__(self, display_name, customer):
         self.display_name = display_name
         self.customer = customer
-        self.keywords = set()
+        self.keywords = set(customer)
 
 def update_display_name_cache(entries, newest_timestamp):
     try:
