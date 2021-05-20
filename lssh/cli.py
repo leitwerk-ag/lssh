@@ -16,14 +16,19 @@ def group_options_by_customer(hosts):
         return (customer, values)
     return [make_option(c) for c in customers]
 
-def matches_substring(display_name, substring):
-    return substring in display_name
+def matches_substring(host, substring):
+    if substring in host.display_name:
+        return True
+    for keyword in host.keywords:
+        if substring in keyword:
+            return True
+    return False
 
-def matches_all_substrings(display_name, substring, additional_substrings):
-    if not matches_substring(display_name, substring):
+def matches_all_substrings(host, substring, additional_substrings):
+    if not matches_substring(host, substring):
         return False
     for substr in additional_substrings:
-        if not matches_substring(display_name, substr):
+        if not matches_substring(host, substr):
             return False
     return True
 
@@ -83,7 +88,8 @@ def select_host(substring, additional_substrings, hosts_dir):
     else:
         matched_hosts = {}
         for display_name in hosts:
-            if matches_all_substrings(display_name, substring, additional_substrings):
+            host = hosts[display_name]
+            if matches_all_substrings(host, substring, additional_substrings):
                 matched_hosts[display_name] = hosts[display_name]
 
     if len(matched_hosts) == 0:
