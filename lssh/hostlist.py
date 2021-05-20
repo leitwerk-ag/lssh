@@ -6,7 +6,7 @@ class HostEntry:
     def __init__(self, display_name, customer):
         self.display_name = display_name
         self.customer = customer
-        self.keywords = set(customer)
+        self.keywords = {customer}
 
 def update_display_name_cache(entries, newest_timestamp):
     try:
@@ -15,9 +15,11 @@ def update_display_name_cache(entries, newest_timestamp):
     except FileNotFoundError:
         need_update = True
     if need_update:
-        names = [h.display_name for h in entries.values()]
+        cache = {}
+        for display_name in entries:
+            cache[display_name] = list(entries[display_name].keywords)
         with open(host_cache_path(), "w") as f:
-            json.dump(names, f)
+            json.dump(cache, f)
 
 def load_config(path):
     entries = {}

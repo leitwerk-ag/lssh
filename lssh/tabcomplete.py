@@ -28,9 +28,14 @@ def find_substrings():
             substrings[0] = substrings[0][idx+1:]
     return substrings
 
-def contains_all_substrings(name, substrings):
+def contains_all_substrings(keywords, substrings):
     for substr in substrings:
-        if substr not in name:
+        contained = False
+        for keyword in keywords:
+            if substr in keyword:
+                contained = True
+                break
+        if not contained:
             return False
     return True
 
@@ -71,7 +76,9 @@ def main(hosts_dir):
             except FileNotFoundError:
                 hosts = parse_hosts(hosts_dir)
             substrings = find_substrings()
-            choices = [h for h in hosts if contains_all_substrings(h, substrings)]
+            host_choices = {h for h in hosts if contains_all_substrings([h] + hosts[h], substrings)}
+            keyword_choices = {keyword for h in host_choices for keyword in hosts[h]}
+            choices = host_choices | keyword_choices
         except FileNotFoundError:
             choices = []
     result = [x for x in choices if x.startswith(current_arg)]
