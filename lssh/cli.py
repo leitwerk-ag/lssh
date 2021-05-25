@@ -1,5 +1,5 @@
 import itertools, os, replay, shlex, subprocess, sys, time, xdg
-from lssh import cli_args, hostlist, tui_dialog
+from lssh import cli_args, hostlist, ssh_agent, tui_dialog
 
 def group_options_by_customer(hosts):
     map_customer = {}
@@ -134,4 +134,4 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
     script_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
-    sys.exit(subprocess.run(script_command).returncode)
+    sys.exit(subprocess.run(script_command, env=ssh_agent.get_environment()).returncode)

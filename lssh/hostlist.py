@@ -18,6 +18,7 @@ def update_display_name_cache(entries, newest_timestamp):
         cache = {}
         for display_name in entries:
             cache[display_name] = list(entries[display_name].keywords)
+        os.makedirs(host_cache_path().parent, exist_ok=True)
         with open(host_cache_path(), "w") as f:
             json.dump(cache, f)
 
