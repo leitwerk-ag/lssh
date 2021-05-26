@@ -32,8 +32,12 @@ except PermissionError as e:
     sys.exit(1)
 
 # Install needed debian packages
-print("Installing sudo ...")
-subprocess.run(["apt", "install", "-y", "sudo"]).check_returncode()
+print("Installing sudo and git ...")
+subprocess.run(["apt", "install", "-y", "sudo", "git"]).check_returncode()
+
+# Install xdg (using pip to get a newer version)
+print("Installing the xdg python module")
+subprocess.run(["pip3", "install", "xdg"])
 
 # Create the lssh user
 lssh_home = pathlib.Path("/var/local/lssh")
