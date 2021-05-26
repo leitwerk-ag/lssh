@@ -40,6 +40,7 @@ try:
 except PermissionError as e:
     print("Got a PermissionError: " + str(e), file=sys.stderr)
     print("Note, that this system-wide installer needs root permissions.")
+    sys.exit(1)
 
 # Install needed debian packages
 print("Installing sudo ...")
