@@ -56,6 +56,12 @@ else:
     print("Repository in " + str(repo_path) + " already exists.")
     git_clone_success = True
 
+# Create the .ssh directory
+print("Creating the .ssh directory for user lssh ...")
+ssh_dir = lssh_home / ".ssh"
+os.makedirs(ssh_dir, exist_ok=True)
+shutil.chown(ssh_dir, "lssh", "lssh")
+
 # Create a pull wrapper-script
 wrapper_file = "/var/local/lssh/pull.sh"
 print("Creating pull wrapper " + str(wrapper_file) + " ...")
