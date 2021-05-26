@@ -1,9 +1,5 @@
 import re, os, subprocess, sys
-from lssh import tui_dialog
-
-import xdg
-if not hasattr(xdg, 'xdg_cache_home'):
-    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
+from lssh import tui_dialog, xdg_compat
 
 def name_matches(name, substrings, timestamp):
     m = re.match('^([0-9\\-]+_[0-9\\-]+)_(.*)$', name)
@@ -24,14 +20,14 @@ def name_matches(name, substrings, timestamp):
 
 def replay_recording(dirname):
     print("Replaying " + dirname + " ...")
-    recording_path = xdg.xdg_data_home() / 'lssh' / 'recordings' / dirname
+    recording_path = xdg_compat.data_home() / 'lssh' / 'recordings' / dirname
     timing_file = str(recording_path / 'timing')
     output_file = str(recording_path / 'output')
     command = ['scriptreplay', '-t', timing_file, output_file]
     sys.exit(subprocess.run(command).returncode)
 
 def replay(substrings, timestamp):
-    recordings_basedir = xdg.xdg_data_home() / 'lssh' / 'recordings'
+    recordings_basedir = xdg_compat.data_home() / 'lssh' / 'recordings'
     rec_files = os.listdir(recordings_basedir)
     matching_rec_files = [name for name in rec_files if name_matches(name, substrings, timestamp)]
     if len(matching_rec_files) == 0:

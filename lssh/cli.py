@@ -1,9 +1,5 @@
 import itertools, os, shlex, subprocess, sys, time
-from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog
-
-import xdg
-if not hasattr(xdg, 'xdg_cache_home'):
-    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
+from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog, xdg_compat
 
 def group_options_by_customer(hosts):
     map_customer = {}
@@ -52,7 +48,7 @@ def split_user_from_substring(s):
     return (s[0:idx], s[idx+1:])
 
 def create_recording_directory(hostname):
-    recordings_basedir = xdg.xdg_data_home() / 'lssh' / 'recordings'
+    recordings_basedir = xdg_compat.data_home() / 'lssh' / 'recordings'
     os.makedirs(recordings_basedir, exist_ok=True)
     name = time.strftime("%Y-%m-%d_%H-%M-%S") + '_' + hostname
     try:

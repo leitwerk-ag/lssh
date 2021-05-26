@@ -1,11 +1,8 @@
 import json, os, re, socket, subprocess
-
-import xdg
-if not hasattr(xdg, 'xdg_cache_home'):
-    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
+from lssh import xdg_compat
 
 def ssh_agent_config_filename():
-    return xdg.xdg_cache_home() / 'lssh' / 'ssh_agent.config'
+    return xdg_compat.cache_home() / 'lssh' / 'ssh_agent.config'
 
 def load_config():
     try:

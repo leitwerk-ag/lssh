@@ -1,5 +1,6 @@
 from json import load
 from os import environ
+from pathlib import Path
 from sys import argv
 
 try:
@@ -57,7 +58,11 @@ def parse_hosts(hosts_dir):
     return names
 
 def host_cache_path():
-    return xdg_cache_home() / 'lssh' / 'hosts.json'
+    if type(xdg_cache_home) is str:
+        cache = Path(xdg_cache_home)
+    else:
+        cache = xdg_cache_home()
+    return cache / 'lssh' / 'hosts.json'
 
 def main(hosts_dir):
     if len(argv) < 5:
