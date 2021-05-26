@@ -1,5 +1,5 @@
-import itertools, os, replay, shlex, subprocess, sys, time, xdg
-from lssh import cli_args, hostlist, ssh_agent, tui_dialog
+import itertools, os, shlex, subprocess, sys, time, xdg
+from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog
 
 def group_options_by_customer(hosts):
     map_customer = {}
