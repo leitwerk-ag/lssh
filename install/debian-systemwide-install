@@ -1,30 +1,19 @@
 #! /usr/bin/env python3
 
-import os, pathlib, pwd, shutil, subprocess, sys, yaml
+import os, pathlib, pwd, shutil, subprocess, sys
 
-# Load install config, if available
+# Check commandline
+if len(sys.argv) != 2:
+    print("Usage: debian-systemwide-install <git_repo_url>", file=sys.stderr)
+    sys.exit(1)
 
-install_dir = pathlib.Path(os.path.realpath(__file__)).parent
-base_dir = install_dir.parent
-try:
-    conf_path = install_dir / "debian-systemwide.yaml"
-    with open(conf_path, "r") as f:
-        config = yaml.load(f)
-        print("Using configuration from: " + str(conf_path))
-except FileNotFoundError:
-    config = {}
-
-# Prompt for missing configuration parameters
-if "repo_url" not in config:
-    config["repo_url"] = input("Please enter the git clone url of the repository containing your hosts: ")
-
-with open(conf_path, "w") as f:
-    yaml.dump(config, f)
+repo_url = sys.argv[1]
 
 # Run the installation
 
 # Copy source files
 try:
+    base_dir = pathlib.Path(os.path.realpath(__file__)).parent.parent
     src = base_dir / "lssh"
     dst = pathlib.Path("/usr/local/lib/lssh")
     print("Copying source files to " + str(dst) + " ...")
@@ -61,7 +50,7 @@ if not os.path.isdir(repo_path):
     print("Cloning repository into " + str(repo_path) + " ...")
     os.makedirs(repo_path)
     shutil.chown(repo_path, "lssh", "lssh")
-    subprocess.run(["sudo", "-u", "lssh", "git", "clone", config["repo_url"], str(repo_path)]).check_returncode()
+    subprocess.run(["sudo", "-u", "lssh", "git", "clone", repo_url, str(repo_path)]).check_returncode()
 else:
     print("Repository in " + str(repo_path) + " already exists.")
 
