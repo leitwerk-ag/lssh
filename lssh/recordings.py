@@ -1,4 +1,8 @@
-import os, re, xdg
+import os, re
+
+import xdg
+if not hasattr(xdg, 'xdg_cache_home'):
+    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
 
 def find_recording_files():
     recordings_basedir = xdg.xdg_data_home() / 'lssh' / 'recordings'

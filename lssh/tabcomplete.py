@@ -1,7 +1,11 @@
 from json import load
 from os import environ
 from sys import argv
-from xdg import xdg_cache_home
+
+try:
+    from xdg import xdg_cache_home
+except ImportError:
+    from xdg.BaseDirectory import xdg_cache_home # Fallback for old xdg version (debian)
 
 from lssh import recordings
 

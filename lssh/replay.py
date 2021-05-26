@@ -1,5 +1,9 @@
-import re, os, subprocess, sys, xdg
+import re, os, subprocess, sys
 from lssh import tui_dialog
+
+import xdg
+if not hasattr(xdg, 'xdg_cache_home'):
+    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
 
 def name_matches(name, substrings, timestamp):
     m = re.match('^([0-9\\-]+_[0-9\\-]+)_(.*)$', name)

@@ -1,5 +1,9 @@
-import itertools, os, shlex, subprocess, sys, time, xdg
+import itertools, os, shlex, subprocess, sys, time
 from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog
+
+import xdg
+if not hasattr(xdg, 'xdg_cache_home'):
+    from xdg import BaseDirectory as xdg # Fallback for old xdg version (debian)
 
 def group_options_by_customer(hosts):
     map_customer = {}
