@@ -46,13 +46,15 @@ except KeyError:
 
 # Clone the repository
 repo_path = lssh_home / "hosts"
-if not os.path.isdir(repo_path):
+if not os.path.isdir(repo_path / ".git"):
     print("Cloning repository into " + str(repo_path) + " ...")
-    os.makedirs(repo_path)
+    os.makedirs(repo_path, exist_ok=True)
     shutil.chown(repo_path, "lssh", "lssh")
-    subprocess.run(["sudo", "-u", "lssh", "git", "clone", repo_url, str(repo_path)]).check_returncode()
+    ret = subprocess.run(["sudo", "-u", "lssh", "git", "clone", repo_url, str(repo_path)]).returncode
+    git_clone_success = ret == 0
 else:
     print("Repository in " + str(repo_path) + " already exists.")
+    git_clone_success = True
 
 # Create a pull wrapper-script
 wrapper_file = "/var/local/lssh/pull.sh"
@@ -100,3 +102,12 @@ complete_file = "/etc/bash_completion.d/lssh_completion"
 print("Writing bash completion instructions to " + complete_file + " ...")
 with open(complete_file, "w") as f:
     f.write("complete -C 'lssh __complete__' lssh\n")
+
+if not git_clone_success:
+    print("")
+    print("Warning:")
+    print("  Your git repository could not be cloned successfully. (See above)")
+    print("  Please ensure the user lssh has the needed permissions, then clone")
+    print("  the repository to the path " + str(repo_path) + " or run")
+    print("  this installer again.")
+    sys.exit(1)
