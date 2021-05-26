@@ -34,21 +34,20 @@ Use the following template to create the executable script `$BIN/lssh` and custo
 
 import sys
 
-hosts_dir = "$HOSTS"
+hosts_dir = "<hosts dir>"
 
 def update_hosts():
+    # Called when a user executes `lssh --update-hosts`
     import subprocess
     subprocess.run(["git", "pull"], cwd=hosts_dir)
 
-sys.path.append("$LIB")
+sys.path.append("<lib>")
 
 from lssh import main
 main.main(hosts_dir, update_hosts)
 ```
 
-Replace `$HOSTS` and `$LIB` in the template
-
-The function `update_hosts()` is called when a user executes `lssh --update-hosts`. You may adapt the pull command to other version control systems and/or use sudo rules. For details on command execution, see https://docs.python.org/3/library/subprocess.html
+Replace `<hosts dir>` with your `$HOSTS` and `<lib>` with your `$LIB` in the template
 
 Make the file executable:
 
@@ -58,7 +57,7 @@ chmod +x $BIN/lssh
 
 ## Setup bash completion
 
-Put the following instruction into a bash startup file
+Put the following instruction into a bash startup file for example `~/.bashrc`
 
 ```bash
 complete -C 'lssh __complete__' lssh
