@@ -1,0 +1,112 @@
+#! /usr/bin/env python3
+
+import os, pathlib, pwd, shutil, subprocess, sys, yaml
+
+# Load install config, if available
+
+install_dir = pathlib.Path(os.path.realpath(__file__)).parent
+base_dir = install_dir.parent
+try:
+    conf_path = install_dir / "debian-systemwide.yaml"
+    with open(conf_path, "r") as f:
+        config = yaml.load(f)
+        print("Using configuration from: " + str(conf_path))
+except FileNotFoundError:
+    config = {}
+
+# Prompt for missing configuration parameters
+if "repo_url" not in config:
+    config["repo_url"] = input("Please enter the git clone url of the repository containing your hosts: ")
+
+with open(conf_path, "w") as f:
+    yaml.dump(config, f)
+
+# Run the installation
+
+# Copy source files
+try:
+    src = base_dir / "lssh"
+    dst = pathlib.Path("/usr/local/lib/lssh")
+    print("Copying source files to " + str(dst) + " ...")
+    os.makedirs(dst, exist_ok=True)
+    src_files = {f for f in os.listdir(src) if f.endswith(".py")}
+    dst_files = {f for f in os.listdir(dst) if f.endswith(".py")}
+    # Copy from source to destination
+    for filename in src_files:
+        shutil.copy(src / filename, dst / filename)
+    # Remove files that have been removed in source dir
+    for filename in (dst_files - src_files):
+        os.remove(dst / filename)
+except PermissionError as e:
+    print("Got a PermissionError: " + str(e), file=sys.stderr)
+    print("Note, that this system-wide installer needs root permissions.")
+
+# Install needed debian packages
+print("Installing sudo ...")
+subprocess.run(["apt", "install", "-y", "sudo"]).check_returncode()
+
+# Create the lssh user
+lssh_home = pathlib.Path("/var/local/lssh")
+try:
+    pwd.getpwnam("lssh")
+    print("User lssh already exists.")
+except KeyError:
+    print("Creating user lssh ...")
+    subprocess.run(["useradd", "lssh", "--system", "--home-dir", str(lssh_home)])
+
+# Clone the repository
+repo_path = lssh_home / "hosts"
+if not os.path.isdir(repo_path):
+    print("Cloning repository into " + str(repo_path) + " ...")
+    os.makedirs(repo_path)
+    shutil.chown(repo_path, "lssh", "lssh")
+    subprocess.run(["sudo", "-u", "lssh", "git", "clone", config["repo_url"], str(repo_path)]).check_returncode()
+else:
+    print("Repository in " + str(repo_path) + " already exists.")
+
+# Create a pull wrapper-script
+wrapper_file = "/var/local/lssh/pull.sh"
+print("Creating pull wrapper " + str(wrapper_file) + " ...")
+with open(wrapper_file, "w") as f:
+    f.write("""#! /bin/bash
+
+cd "$(dirname "$0")"/hosts
+git pull
+""")
+os.chmod(wrapper_file, 0o755)
+
+# Create a sudo rule for pull
+sudo_rule_file = "/etc/sudoers.d/lssh"
+print("Creating sudo rule in " + sudo_rule_file + " ...")
+with open(sudo_rule_file, "w") as f:
+    f.write("""# Allow anyone to execute "git pull" as user lssh
+ALL ALL = (lssh) NOPASSWD:/var/local/lssh/pull.sh
+""")
+os.chmod(sudo_rule_file, 0o440)
+
+# Create the lssh executable file
+lssh_file = "/usr/local/bin/lssh"
+print("Creating lssh executable in " + str(lssh_file) + " ...")
+with open(lssh_file, "w") as f:
+    f.write("""#! /usr/bin/env python3
+
+import sys
+
+hosts_dir = "/var/local/lssh/hosts"
+
+def update_hosts():
+    import subprocess
+    subprocess.run(["sudo", "-u", "lssh", "/var/local/lssh/pull.sh"], cwd=hosts_dir)
+
+sys.path.append("/usr/local/lib")
+
+from lssh import main
+main.main(hosts_dir, update_hosts)
+""")
+os.chmod(lssh_file, 0o755)
+
+# Setup tab-completion
+complete_file = "/etc/bash_completion.d/lssh_completion"
+print("Writing bash completion instructions to " + complete_file + " ...")
+with open(complete_file, "w") as f:
+    f.write("complete -C 'lssh __complete__' lssh\n")
