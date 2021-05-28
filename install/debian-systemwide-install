@@ -1,15 +1,42 @@
 #! /usr/bin/env python3
 
-import os, pathlib, pwd, shutil, subprocess, sys
+import argparse, os, pathlib, pkg_resources, shutil, subprocess, sys
 
 # Check commandline
-if len(sys.argv) != 2:
-    print("Usage: debian-systemwide-install <git_repo_url>", file=sys.stderr)
-    sys.exit(1)
+parser = argparse.ArgumentParser(prog='debian-systemwide-install')
 
-repo_url = sys.argv[1]
+parser.add_argument('-p', '--install-packages', dest='packages', action='store_true', help='Automatically install needed packages via apt and python modules via pip')
+parser.add_argument('clone_url', help='Git clone url to load the ssh configuration')
+
+parsed_args = parser.parse_args()
+
+repo_url = parsed_args.clone_url
 
 # Run the installation
+
+# Check for packages
+if not parsed_args.packages:
+    missing_apt_packages = []
+    if shutil.which("sudo") is None:
+        missing_apt_packages.append("sudo")
+    if shutil.which("git") is None:
+        missing_apt_packages.append("git")
+    if shutil.which("pip3") is None:
+        missing_apt_packages.append("python3-pip")
+    installed_modules = {pkg.key for pkg in pkg_resources.working_set}
+    if 'xdg' not in installed_modules and 'pyxdg' not in installed_modules:
+        missing_apt_packages.append("python3-xdg")
+    py_cui_available = 'py-cui' in installed_modules
+    if len(missing_apt_packages) > 1:
+        print("The following debian packages are missing: " + " ".join(missing_apt_packages), file=sys.stderr)
+    elif len(missing_apt_packages) == 1:
+        print("The debian package `" + missing_apt_packages[0] + "' is missing.", file=sys.stderr)
+    if not py_cui_available:
+        print("The python module `py-cui' is missing.", file=sys.stderr)
+    if len(missing_apt_packages) > 0 or not py_cui_available:
+        print("You may run this installer with -p (or --install-packages) to install dependencies automatically.", file=sys.stderr)
+        print("Note: The uninstaller will not uninstall these dependencies", file=sys.stderr)
+        sys.exit(1)
 
 # Copy source files
 try:
@@ -31,49 +58,41 @@ except PermissionError as e:
     print("Note, that this system-wide installer needs root permissions.")
     sys.exit(1)
 
-# Install needed debian packages
-print("Installing sudo, git, python3-pip and python3-xdg ...")
-subprocess.run(["apt", "install", "-y", "sudo", "git", "python3-pip", "python3-xdg"]).check_returncode()
+if parsed_args.packages:
+    # Install needed debian packages
+    print("Installing sudo, git, python3-pip and python3-xdg ...")
+    subprocess.run(["apt", "install", "-y", "sudo", "git", "python3-pip", "python3-xdg"]).check_returncode()
 
-# Install the py_cui module
-print("Installing the py_cui python module ...")
-subprocess.run(["pip3", "install", "py_cui"])
-
-# Create the lssh user
-lssh_home = pathlib.Path("/var/local/lssh")
-try:
-    pwd.getpwnam("lssh")
-    print("User lssh already exists.")
-except KeyError:
-    print("Creating user lssh ...")
-    subprocess.run(["useradd", "lssh", "--system", "--home-dir", str(lssh_home)])
+    # Install the py_cui module
+    print("Installing the py_cui python module ...")
+    subprocess.run(["pip3", "install", "py_cui"])
 
 # Clone the repository
-repo_path = lssh_home / "hosts"
+lssh_home = pathlib.Path("/var/local/lssh")
+repo_path = lssh_home / "host_repo"
 if not os.path.isdir(repo_path / ".git"):
     print("Cloning repository into " + str(repo_path) + " ...")
-    os.makedirs(repo_path, exist_ok=True)
-    shutil.chown(repo_path, "lssh", "lssh")
-    ret = subprocess.run(["sudo", "-u", "lssh", "git", "clone", repo_url, str(repo_path)]).returncode
+    os.makedirs(repo_path, mode=0o700, exist_ok=True)
+    ret = subprocess.run(["git", "clone", repo_url, str(repo_path)]).returncode
     git_clone_success = ret == 0
 else:
     print("Repository in " + str(repo_path) + " already exists.")
     git_clone_success = True
 
-# Create the .ssh directory
-print("Creating the .ssh directory for user lssh ...")
-ssh_dir = lssh_home / ".ssh"
-os.makedirs(ssh_dir, exist_ok=True)
-shutil.chown(ssh_dir, "lssh", "lssh")
+# Create the directory for validated hosts
+validated = lssh_home / "hosts"
+print("Creating directory for validated hosts in " + str(validated) + " ...")
+os.makedirs(validated, exist_ok=True)
 
 # Create a pull wrapper-script
 wrapper_file = "/var/local/lssh/pull.sh"
 print("Creating pull wrapper " + str(wrapper_file) + " ...")
 with open(wrapper_file, "w") as f:
-    f.write("""#! /bin/bash
+    f.write("""#! /bin/bash -e
 
-cd "$(dirname "$0")"/hosts
+cd "$(dirname "$0")"/host_repo
 git pull
+lssh --load-from .
 """)
 os.chmod(wrapper_file, 0o755)
 
@@ -82,7 +101,7 @@ sudo_rule_file = "/etc/sudoers.d/lssh"
 print("Creating sudo rule in " + sudo_rule_file + " ...")
 with open(sudo_rule_file, "w") as f:
     f.write("""# Allow anyone to execute "git pull" as user lssh
-ALL ALL = (lssh) NOPASSWD:/var/local/lssh/pull.sh
+ALL ALL = (root) NOPASSWD:/var/local/lssh/pull.sh
 """)
 os.chmod(sudo_rule_file, 0o440)
 
@@ -98,7 +117,7 @@ hosts_dir = "/var/local/lssh/hosts"
 
 def update_hosts():
     import subprocess
-    subprocess.run(["sudo", "-u", "lssh", "/var/local/lssh/pull.sh"], cwd=hosts_dir)
+    subprocess.run(["sudo", "/var/local/lssh/pull.sh"])
 
 sys.path.append("/usr/local/lib")
 
@@ -113,11 +132,13 @@ print("Writing bash completion instructions to " + complete_file + " ...")
 with open(complete_file, "w") as f:
     f.write("complete -C 'lssh __complete__' lssh\n")
 
-if not git_clone_success:
+if git_clone_success:
+    subprocess.run(["lssh", "--load-from", str(repo_path)]).check_returncode()
+else:
     print("")
     print("Warning:")
     print("  Your git repository could not be cloned successfully. (See above)")
-    print("  Please ensure the user lssh has the needed permissions, then clone")
+    print("  Please ensure you have the needed permissions, then clone")
     print("  the repository to the path " + str(repo_path) + " or run")
     print("  this installer again.")
     sys.exit(1)

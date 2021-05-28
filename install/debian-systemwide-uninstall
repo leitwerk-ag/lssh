@@ -23,14 +23,6 @@ def remove_file(note, name):
 remove_dir("/usr/local/lib/lssh")
 remove_dir("/var/local/lssh")
 
-# delete the lssh user
-try:
-    pwd.getpwnam("lssh")
-    print("Deleting user lssh ...")
-    subprocess.run(["userdel", "lssh"]).check_returncode()
-except KeyError:
-    print("User lssh does not exist")
-
 remove_file("sudo rule", "/etc/sudoers.d/lssh")
 remove_file("lssh executable", "/usr/local/bin/lssh")
 remove_file("bash completion file", "/etc/bash_completion.d/lssh_completion")
