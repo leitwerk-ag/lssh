@@ -129,7 +129,7 @@ os.chmod(lssh_file, 0o755)
 complete_file = "/etc/bash_completion.d/lssh_completion"
 print("Writing bash completion instructions to " + complete_file + " ...")
 with open(complete_file, "w") as f:
-    f.write("complete -C 'lssh __complete__' lssh\n")
+    f.write("complete -o filenames -C 'lssh __complete__' lssh\n")
 
 # Crontab entry
 print("Creating a crontab entry to update the hostlist regularly ...")
