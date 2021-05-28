@@ -114,7 +114,7 @@ def check_line(line, nr):
             # allowed setting
             return None
         # disallowed setting
-        return "Option " + instruction + " (line " + str(nr) + ") is not whitelisted."
+        return "Option `" + instruction + "' (line " + str(nr) + ") is not whitelisted."
     # could not parse this line
     return "Line " + str(nr) + " could not be parsed by the validator."
 

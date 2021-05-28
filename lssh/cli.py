@@ -72,6 +72,8 @@ def main(hosts_dir, update_hosts):
     ensure_no_usernames(additional_substrings)
     if args.update:
         update_hosts()
+    elif args.load is not None:
+        hostlist.import_new_config(args.load, hosts_dir)
     elif args.replay or args.time is not None:
         if substring is None:
             all_substrings = []

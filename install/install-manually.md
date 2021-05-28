@@ -60,5 +60,5 @@ chmod +x $BIN/lssh
 Put the following instruction into a bash startup file for example `~/.bashrc`
 
 ```bash
-complete -C 'lssh __complete__' lssh
+complete -o filenames -C 'lssh __complete__' lssh
 ```

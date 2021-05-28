@@ -1,5 +1,6 @@
-import json, os, re
+import json, os, pathlib, re, sys
 
+from lssh import config_validation
 from lssh.tabcomplete import host_cache_path
 
 class HostEntry:
@@ -65,3 +66,33 @@ def load_config(path):
     update_display_name_cache(entries, newest_timestamp)
 
     return entries
+
+def import_new_config(srcpath, dstpath):
+    srcpath = pathlib.Path(srcpath)
+    dstpath = pathlib.Path(dstpath)
+    srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
+    srcfiles.sort()
+    dstfiles = [name for name in os.listdir(dstpath) if name.endswith(".txt") and os.path.isfile(dstpath / name)]
+
+    contents = {}
+    errors = []
+    for name in srcfiles:
+        with open(srcpath / name, "r") as f:
+            content = f.read()
+            # Store the content in ram to prevent race-conditions (no extra read needed for copying)
+            contents[name] = content
+        errors += [name + ": " + e for e in config_validation.check_ssh_config_safety(content)]
+    if len(errors) > 0:
+        for error in errors:
+            print(error, file=sys.stderr)
+        print("Could not import the new config because of " + ("this error" if len(errors) == 1 else "these errors"), file=sys.stderr)
+        sys.exit(1)
+
+    # Write new config to destination dir
+    for name in srcfiles:
+        with open(dstpath / name, "w") as f:
+            f.write(contents[name])
+
+    # Delete files from destination that were removed in source
+    for name in set(dstfiles) - set(srcfiles):
+        os.unlink(dstpath / name)

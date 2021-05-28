@@ -73,9 +73,15 @@ def main(hosts_dir):
     if previous_arg == '--timestamp':
         # timestamp completion
         choices = timestamp_completions(find_substrings())
+    elif previous_arg == '--load-from':
+        from shlex import quote
+        from subprocess import run
+        from sys import exit
+        compgen_cmd = "compgen -d -- " + quote(current_arg)
+        exit(run(["bash", "-c", compgen_cmd]).returncode)
     elif current_arg.startswith('-'):
         # option completion
-        choices = ['--help', '--replay', '--timestamp', '--update-hosts', '--verbose']
+        choices = ['--help', '--load-from', '--replay', '--timestamp', '--update-hosts', '--verbose']
     else:
         # substring completion
         try:
