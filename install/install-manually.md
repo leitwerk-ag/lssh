@@ -5,7 +5,8 @@ Placeholders are used in the rest of this guide that you need to replace with yo
 
 - A bin directory where the lssh python script can be stored, called `$BIN`
 - A place where the lssh directory with the main python code can be stored, called `$LIB`
-- A path for the repository containing host entries, called `$HOSTS`
+- A path for the repository containing host entries, called `$HOST_REPO`
+- A path for the validated host entries, called `$HOSTS`
 
 ## Installing python code
 
@@ -19,10 +20,10 @@ cp -r lssh $LIB/
 
 ## Clone the host configuration repository
 
-Clone the repository that contains your ssh configuration files, to the location `$HOSTS`, for example using git:
+Clone the repository that contains your ssh configuration files, to the location `$HOST_REPO`, for example using git:
 
 ```bash
-git clone _your-clone-url_ $HOSTS
+git clone _your-clone-url_ $HOST_REPO
 ```
 
 ## Create the lssh executable file
@@ -40,6 +41,7 @@ def update_hosts():
     # Called when a user executes `lssh --update-hosts`
     import subprocess
     subprocess.run(["git", "pull"], cwd=hosts_dir)
+    subprocess.run(["lssh", "--load-from", "<host repo>"])
 
 sys.path.append("<lib>")
 
@@ -47,7 +49,7 @@ from lssh import main
 main.main(hosts_dir, update_hosts)
 ```
 
-Replace `<hosts dir>` with your `$HOSTS` and `<lib>` with your `$LIB` in the template
+Replace `<hosts dir>` with your `$HOSTS`, `<host repo>` with your `$HOST_REPO` and `<lib>` with your `$LIB` in the template
 
 Make the file executable:
 
