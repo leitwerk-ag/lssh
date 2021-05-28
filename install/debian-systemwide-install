@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import argparse, crontab, os, pathlib, pkg_resources, shutil, subprocess, sys
+import argparse, crontab, os, pathlib, pkgutil, shutil, subprocess, sys
 
 # Check commandline
 parser = argparse.ArgumentParser(prog='debian-systemwide-install')
@@ -23,10 +23,9 @@ if not parsed_args.packages:
         missing_apt_packages.append("git")
     if shutil.which("pip3") is None:
         missing_apt_packages.append("python3-pip")
-    installed_modules = {pkg.key for pkg in pkg_resources.working_set}
-    if 'xdg' not in installed_modules and 'pyxdg' not in installed_modules:
+    if pkgutil.find_loader('xdg') is None:
         missing_apt_packages.append("python3-xdg")
-    py_cui_available = 'py-cui' in installed_modules
+    py_cui_available = pkgutil.find_loader('py_cui') is not None
     if len(missing_apt_packages) > 1:
         print("The following debian packages are missing: " + " ".join(missing_apt_packages), file=sys.stderr)
     elif len(missing_apt_packages) == 1:
