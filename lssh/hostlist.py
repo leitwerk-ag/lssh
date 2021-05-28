@@ -90,8 +90,14 @@ def import_new_config(srcpath, dstpath):
 
     # Write new config to destination dir
     for name in srcfiles:
-        with open(dstpath / name, "w") as f:
-            f.write(contents[name])
+        with open(dstpath / name, "r+") as f:
+            # First check, if the file did actually change
+            # Simply overwriting would change the file's modification date, resulting in cache-rebuilds
+            content = f.read()
+            if content != contents[name]:
+                f.seek(0)
+                f.truncate()
+                f.write(contents[name])
 
     # Delete files from destination that were removed in source
     for name in set(dstfiles) - set(srcfiles):
