@@ -47,7 +47,7 @@ def load_config(path):
                 cur_host[0].keywords |= keywords
     files = os.listdir(path)
     files.sort()
-    newest_timestamp = 0
+    newest_timestamp = os.stat(path).st_mtime
     for filename in files:
         name = path + "/" + filename
         if filename.endswith(".txt") and os.path.isfile(name):
