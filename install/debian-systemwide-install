@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import argparse, os, pathlib, pkg_resources, shutil, subprocess, sys
+import argparse, crontab, os, pathlib, pkg_resources, shutil, subprocess, sys
 
 # Check commandline
 parser = argparse.ArgumentParser(prog='debian-systemwide-install')
@@ -92,7 +92,7 @@ with open(wrapper_file, "w") as f:
 
 cd "$(dirname "$0")"/host_repo
 git pull
-lssh --load-from .
+/usr/local/bin/lssh --load-from .
 """)
 os.chmod(wrapper_file, 0o755)
 
@@ -132,7 +132,12 @@ print("Writing bash completion instructions to " + complete_file + " ...")
 with open(complete_file, "w") as f:
     f.write("complete -C 'lssh __complete__' lssh\n")
 
+# Crontab entry
+print("Creating a crontab entry to update the hostlist regularly ...")
+crontab.add_pull_entry()
+
 if git_clone_success:
+    print("Loading initial hostlist ...")
     subprocess.run(["lssh", "--load-from", str(repo_path)]).check_returncode()
 else:
     print("")
