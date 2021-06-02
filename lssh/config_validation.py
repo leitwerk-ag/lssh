@@ -109,7 +109,7 @@ class HostSection():
         self.__alias_line = None
     def register_connectname(self, line_nr):
         if self.__hostname is None:
-            return "Option HostName is invalid on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
+            return "Option HostName is not allowed on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
         elif self.__connectname_set:
             return "Option HostName is only allowed once per host block. (Appeared in line " + str(self.__connectname_line) + " and " + str(line_nr) + ")"
         else:
@@ -118,10 +118,11 @@ class HostSection():
             return None
     def set_hostkeyalias(self, alias, line_nr):
         if self.__hostname is None:
-            return "Option HostKeyAlias is invalid on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
+            return "Option HostKeyAlias is not allowed on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
         elif self.__alias_set:
             return "Option HostKeyAlias is only allowed once per host block. (Appeared in line " + str(self.__alias_line) + " and " + str(line_nr) + ")"
         elif alias != self.__hostname:
+            self.__alias_set = True
             return "The value of the HostKeyAlias field on line " + str(line_nr) + " must match the host keyword of this host block (`" + self.__hostname + "')"
         else:
             self.__alias_set = True
