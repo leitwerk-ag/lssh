@@ -154,6 +154,8 @@ def check_line(section, line, nr):
             name = m.group(2)
             if '*' in name or '?' in name or ' ' in name.strip():
                 section.reset(None, None)
+            elif not re.match('^[a-zA-Z0-9\\.\\-_]+$', name.strip()):
+                return "The hostname " + name.strip() + " (line " + str(nr) + ") contains invalid characters."
             else:
                 section.reset(m.group(2), nr)
             return validation
