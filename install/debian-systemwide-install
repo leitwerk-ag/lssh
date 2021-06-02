@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import argparse, crontab, os, pathlib, pkgutil, shutil, subprocess, sys
+import argparse, crontab, os, pathlib, pkgutil, shutil, ssh_config, subprocess, sys
 
 # Check commandline
 parser = argparse.ArgumentParser(prog='debian-systemwide-install')
@@ -124,6 +124,10 @@ from lssh import main
 main.main(hosts_dir, update_hosts)
 """)
 os.chmod(lssh_file, 0o755)
+
+# Add an include-directive to the ssh config
+print("Including ssh config files in the global configuration ...")
+ssh_config.add_include_entry()
 
 # Setup tab-completion
 complete_file = "/etc/bash_completion.d/lssh_completion"

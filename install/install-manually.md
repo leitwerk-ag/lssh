@@ -57,6 +57,16 @@ Make the file executable:
 chmod +x $BIN/lssh
 ```
 
+## Include the ssh configuration files
+
+In your ssh client configuration file (for example `/etc/ssh/ssh_config` or `~/.ssh/config`) add an include-entry using the following template:
+
+```
+Include <hosts dir>/*.txt
+```
+
+Replace `<hosts dir>` with your `$HOSTS`.
+
 ## Setup bash completion
 
 Put the following instruction into a bash startup file for example `~/.bashrc`

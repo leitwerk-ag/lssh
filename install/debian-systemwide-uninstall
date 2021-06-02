@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import crontab, os, pwd, shutil, subprocess, sys
+import crontab, os, pwd, shutil, ssh_config, subprocess, sys
 
 def remove_dir(name):
     print("Removing " + name + " ...")
@@ -26,6 +26,10 @@ remove_dir("/var/local/lssh")
 remove_file("sudo rule", "/etc/sudoers.d/lssh")
 remove_file("lssh executable", "/usr/local/bin/lssh")
 remove_file("bash completion file", "/etc/bash_completion.d/lssh_completion")
+
+print("Removing include-directive from global ssh config ...")
+if not ssh_config.remove_include_entry():
+    print("  (did not exist)")
 
 print("Removing crontab entry for regular hostlist update ...")
 if not crontab.remove_pull_entry():
