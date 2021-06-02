@@ -62,10 +62,24 @@ chmod +x $BIN/lssh
 In your ssh client configuration file (for example `/etc/ssh/ssh_config` or `~/.ssh/config`) add an include-entry using the following template:
 
 ```
+Host *
 Include <hosts dir>/*.txt
 ```
 
 Replace `<hosts dir>` with your `$HOSTS`.
+
+### General proxy
+
+This step is optional. You may also specify a global proxy machine in the ssh client configuration. This proxy will always be used as a first connection step to the target machine.
+
+To activate the proxy, add the settings using the following template below the include-instruction from before:
+
+```
+Match originalhost !example.com,*
+ProxyJump example.com
+```
+
+Replace `example.com` with the actual alias hostname of your proxy in both lines.
 
 ## Setup bash completion
 

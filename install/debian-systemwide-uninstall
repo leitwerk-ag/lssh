@@ -27,8 +27,8 @@ remove_file("sudo rule", "/etc/sudoers.d/lssh")
 remove_file("lssh executable", "/usr/local/bin/lssh")
 remove_file("bash completion file", "/etc/bash_completion.d/lssh_completion")
 
-print("Removing include-directive from global ssh config ...")
-if not ssh_config.remove_include_entry():
+print("Removing lssh section from global ssh config ...")
+if not ssh_config.remove_section():
     print("  (did not exist)")
 
 print("Removing crontab entry for regular hostlist update ...")

@@ -5,7 +5,8 @@ import argparse, crontab, os, pathlib, pkgutil, shutil, ssh_config, subprocess, 
 # Check commandline
 parser = argparse.ArgumentParser(prog='debian-systemwide-install')
 
-parser.add_argument('-p', '--install-packages', dest='packages', action='store_true', help='Automatically install needed packages via apt and python modules via pip')
+parser.add_argument('-i', '--install-packages', dest='packages', action='store_true', help='Automatically install needed packages via apt and python modules via pip')
+parser.add_argument('-p', '--proxy', help='Specify a proxy host that is always used for connections from this machine')
 parser.add_argument('clone_url', help='Git clone url to load the ssh configuration')
 
 parsed_args = parser.parse_args()
@@ -125,9 +126,9 @@ main.main(hosts_dir, update_hosts)
 """)
 os.chmod(lssh_file, 0o755)
 
-# Add an include-directive to the ssh config
-print("Including ssh config files in the global configuration ...")
-ssh_config.add_include_entry()
+# Add a section to the ssh config
+print("Setting relevant configs in /etc/ssh/ssh_config ...")
+ssh_config.add_section(parsed_args.proxy)
 
 # Setup tab-completion
 complete_file = "/etc/bash_completion.d/lssh_completion"
