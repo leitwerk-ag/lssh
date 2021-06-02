@@ -70,14 +70,14 @@ if parsed_args.packages:
 # Clone the repository
 lssh_home = pathlib.Path("/var/local/lssh")
 repo_path = lssh_home / "host_repo"
-if not os.path.isdir(repo_path / ".git"):
+repo_clone_needed = not os.path.isdir(repo_path / ".git")
+if repo_clone_needed:
     print("Cloning repository into " + str(repo_path) + " ...")
     os.makedirs(repo_path, mode=0o700, exist_ok=True)
     ret = subprocess.run(["git", "clone", repo_url, str(repo_path)]).returncode
     git_clone_success = ret == 0
 else:
     print("Repository in " + str(repo_path) + " already exists.")
-    git_clone_success = True
 
 # Create the directory for validated hosts
 validated = lssh_home / "hosts"
@@ -140,14 +140,19 @@ with open(complete_file, "w") as f:
 print("Creating a crontab entry to update the hostlist regularly ...")
 crontab.add_pull_entry()
 
-if git_clone_success:
-    print("Loading initial hostlist ...")
-    subprocess.run(["lssh", "--load-from", str(repo_path)]).check_returncode()
-else:
-    print("")
-    print("Warning:")
-    print("  Your git repository could not be cloned successfully. (See above)")
-    print("  Please ensure you have the needed permissions, then clone")
-    print("  the repository to the path " + str(repo_path) + " or run")
-    print("  this installer again.")
-    sys.exit(1)
+if repo_clone_needed:
+    if git_clone_success:
+        # Initially load the ssh config from the repo
+        print("Loading initial hostlist ...")
+        ret = subprocess.run(["lssh", "--load-from", str(repo_path)]).returncode
+        if ret != 0:
+            print("Your ssh configuration has not been loaded because of the previous errors.", file=sys.stderr)
+            exit(1)
+    else:
+        print("")
+        print("Warning:")
+        print("  Your git repository could not be cloned successfully. (See above)")
+        print("  Please ensure you have the needed permissions, then clone")
+        print("  the repository to the path " + str(repo_path) + " or run")
+        print("  this installer again.")
+        exit(1)
