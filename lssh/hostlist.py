@@ -9,7 +9,7 @@ class HostEntry:
         self.customer = customer
         self.keywords = {customer}
 
-def update_display_name_cache(entries, newest_timestamp):
+def update_display_name_cache(entries, newest_timestamp, suppress_errors):
     try:
         cache_stat = os.stat(host_cache_path())
         need_update = cache_stat.st_mtime < newest_timestamp
@@ -19,11 +19,15 @@ def update_display_name_cache(entries, newest_timestamp):
         cache = {}
         for display_name in entries:
             cache[display_name] = list(entries[display_name].keywords)
-        os.makedirs(host_cache_path().parent, exist_ok=True)
-        with open(host_cache_path(), "w") as f:
-            json.dump(cache, f)
+        try:
+            os.makedirs(host_cache_path().parent, exist_ok=True)
+            with open(host_cache_path(), "w") as f:
+                json.dump(cache, f)
+        except Exception as e:
+            if not suppress_errors:
+                print("Warning: failed to create hostlist cache file: " + str(e), file=sys.stderr)
 
-def load_config(path):
+def load_config(path, suppress_errors=False):
     entries = {}
     cur_host = [None] # array is used to make the value mutable for the handle_line function
     def handle_line(line, customer, file_keywords, file_hosts):
@@ -63,7 +67,7 @@ def load_config(path):
                     host.keywords |= file_keywords
             stat = os.stat(name)
             newest_timestamp = max(newest_timestamp, stat.st_mtime)
-    update_display_name_cache(entries, newest_timestamp)
+    update_display_name_cache(entries, newest_timestamp, suppress_errors)
 
     return entries
 

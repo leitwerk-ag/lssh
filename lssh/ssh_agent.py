@@ -1,4 +1,4 @@
-import json, os, re, socket, subprocess
+import json, os, re, socket, subprocess, sys
 from lssh import xdg_compat
 
 def ssh_agent_config_filename():
@@ -22,6 +22,11 @@ def valid_config(config):
         return False
 
 def start_agent():
+    try:
+        os.makedirs(ssh_agent_config_filename().parent, exist_ok=True)
+    except Exception as e:
+        print("Warning: Failed to store ssh agent configuration: " + str(e), file=sys.stderr)
+        return {}
     completed = subprocess.run(['ssh-agent', '-c'], capture_output=True)
     output = completed.stdout.decode()
     lines = output.split("\n")
@@ -30,7 +35,6 @@ def start_agent():
         m = re.match('^setenv ([^ ]+) (.*);$', line)
         if m:
             env_vars[m.group(1)] = m.group(2)
-    os.makedirs(ssh_agent_config_filename().parent, exist_ok=True)
     with open(ssh_agent_config_filename(), 'w') as f:
         json.dump(env_vars, f)
     return env_vars

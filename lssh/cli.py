@@ -131,9 +131,21 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
         command.append('-' + args.verbose * 'v')
     user_prefix = "" if user is None else user + "@"
     command.append(user_prefix + selected)
-    rec_dir = create_recording_directory(selected)
+    try:
+        rec_dir = create_recording_directory(selected)
+    except Exception as e:
+        print("Warning: Could not create directory for session recording: " + str(e), file=sys.stderr)
+        rec_dir = None
     ssh_commandline = ' '.join([shlex.quote(arg) for arg in command])
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
-    script_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
-    sys.exit(subprocess.run(script_command, env=ssh_agent.get_environment()).returncode)
+    if rec_dir is not None:
+        final_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
+    else:
+        final_command = command
+    try:
+        sys.exit(subprocess.run(final_command, env=ssh_agent.get_environment()).returncode)
+    except KeyboardInterrupt:
+        # User is allowed to interrupt the ssh process
+        # Just ignore this case
+        pass
