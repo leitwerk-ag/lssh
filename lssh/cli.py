@@ -71,7 +71,7 @@ def main(hosts_dir, update_hosts):
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
     if args.version:
-        print("lssh version 0.1.0")
+        print("lssh version 0.1.1")
     elif args.update:
         update_hosts()
     elif args.load is not None:
