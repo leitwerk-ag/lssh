@@ -14,13 +14,17 @@ A central git repository contains the ssh configuration for all your hosts and w
 - SSH command options are passed through
 - Tab-completion for Bash
 - Automatically starts and uses an ssh-agent if not already started
+- The ssh configuration of the git repository is included in the official ssh configuration file, so all hosts are also accessible using ssh, without the wrapper.
+- The include of the ssh configuration is protected by a security validation to prevent code execution.
 
 ## Install
 
 ### Debian
 
 For the debian linux distribution, there is an install-script that installs lssh for all users and must be run as root:  
-`./install/debian-systemwide-install`  
+`./install/debian-systemwide-install <git_repo_url>`  
+Replace `<git_repo_url>` with the clone url of your ssh configuration repository, that must be formatted as described in [SSH config format](./docs/ssh_config_format.md)
+
 There is also a corresponding uninstaller:  
 `./install/debian-systemwide-uninstall`
 
