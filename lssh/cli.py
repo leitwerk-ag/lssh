@@ -86,7 +86,7 @@ def main(hosts_dir, update_hosts):
         connect(args, user, substring, additional_substrings, hosts_dir)
 
 def select_host(substring, additional_substrings, hosts_dir):
-    hosts = hostlist.load_config(hosts_dir)
+    hosts, displaynames = hostlist.load_config(hosts_dir)
     if substring is None:
         matched_hosts = hosts
     else:
@@ -108,7 +108,7 @@ def select_host(substring, additional_substrings, hosts_dir):
         selected = list(matched_hosts.keys())[0]
     else:
         options = group_options_by_customer(matched_hosts)
-        choice = tui_dialog.hierarchical_option_dialog(options, 'select customer', 'select host')
+        choice = tui_dialog.hierarchical_option_dialog(options, displaynames, 'select customer', 'select host')
         if choice is None:
             print("No host has been selected")
             sys.exit(1)

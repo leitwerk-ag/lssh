@@ -29,9 +29,11 @@ def update_display_name_cache(entries, newest_timestamp, suppress_errors):
 
 def load_config(path, suppress_errors=False):
     entries = {}
+    displaynames = {}
     cur_host = [None] # array is used to make the value mutable for the handle_line function
+    file_displayname = [None]
     def handle_line(line, customer, file_keywords, file_hosts):
-        m = re.match('^\s*Host\s+([\S]+)\s*$', line)
+        m = re.match('^\s*Host\s+([\S]+)\s*$', line, re.IGNORECASE)
         if m:
             hostname = m.group(1)
             if '*' not in hostname and '?' not in hostname:
@@ -39,7 +41,7 @@ def load_config(path, suppress_errors=False):
                 if hostname not in entries:
                     entries[hostname] = cur_host[0]
                 file_hosts.append(cur_host[0])
-        m = re.match('^\s*#\s*lssh:(file)?keywords\s(.*)$', line)
+        m = re.match('^\s*#\s*lssh:(file)?keywords\s(.*)$', line, re.IGNORECASE)
         if m:
             keywords_str = m.group(2)
             keywords = {k.strip() for k in keywords_str.split(',')}
@@ -49,6 +51,9 @@ def load_config(path, suppress_errors=False):
             elif cur_host[0] is not None:
                 # keywords only for this host
                 cur_host[0].keywords |= keywords
+        m = re.match('^\s*#\s*lssh:displayname\s+(\S.*)$', line, re.IGNORECASE)
+        if m and file_displayname[0] is None:
+            file_displayname[0] = m.group(1)
     files = os.listdir(path)
     files.sort()
     newest_timestamp = os.stat(path).st_mtime
@@ -60,16 +65,20 @@ def load_config(path, suppress_errors=False):
                 cur_host[0] = None
                 file_keywords = {basename}
                 file_hosts = []
+                file_displayname = [None]
                 for line in f:
                     handle_line(line, basename, file_keywords, file_hosts)
                 # add the file keywords to all hosts of this file
                 for host in file_hosts:
                     host.keywords |= file_keywords
+                # store the displayname
+                if file_displayname[0] is not None:
+                    displaynames[basename] = file_displayname[0]
             stat = os.stat(name)
             newest_timestamp = max(newest_timestamp, stat.st_mtime)
     update_display_name_cache(entries, newest_timestamp, suppress_errors)
 
-    return entries
+    return (entries, displaynames)
 
 def import_new_config(srcpath, dstpath):
     srcpath = pathlib.Path(srcpath)

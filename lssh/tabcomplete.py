@@ -53,7 +53,7 @@ def parse_hosts(hosts_dir):
     from json import dump
     from lssh.hostlist import load_config
 
-    config = load_config(hosts_dir, suppress_errors=True)
+    config, _ = load_config(hosts_dir, suppress_errors=True)
     hosts = {}
     for display_name in config:
         hosts[display_name] = list(config[display_name].keywords)

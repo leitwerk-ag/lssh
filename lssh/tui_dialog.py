@@ -32,7 +32,7 @@ def flat_option_dialog(options, heading):
     root.start()
     return result[0]
 
-def hierarchical_option_dialog(options, heading_left, heading_right):
+def hierarchical_option_dialog(options, displaynames, heading_left, heading_right):
     '''
     Let the user choose an element from a two-layer hierarchical option tree.
 
@@ -67,8 +67,13 @@ def hierarchical_option_dialog(options, heading_left, heading_right):
         result[0] = (left_idx[0], right_idx)
         root.stop()
 
+    def heading_display(name):
+        if name in displaynames:
+            return displaynames[name]
+        return name
+
     left_menu = root.add_scroll_menu(heading_left, 0, 0)
-    left_menu.add_item_list([e[0] for e in options])
+    left_menu.add_item_list([heading_display(e[0]) for e in options])
     left_menu.set_color(py_cui.WHITE_ON_BLACK)
     left_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
     left_menu.add_key_command(py_cui.keys.KEY_ENTER, navigate_to_right)
