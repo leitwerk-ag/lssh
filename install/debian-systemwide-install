@@ -88,10 +88,16 @@ os.makedirs(validated, exist_ok=True)
 wrapper_file = "/var/local/lssh/pull.sh"
 print("Creating pull wrapper " + str(wrapper_file) + " ...")
 with open(wrapper_file, "w") as f:
-    f.write("""#! /bin/bash -e
+    f.write("""#! /bin/bash
 
-cd "$(dirname "$0")"/host_repo
-git pull
+cd "$(dirname "$0")"/host_repo || exit 1
+pull_output="$(git pull 2>&1)"
+pull_exit="$?"
+if [ "$pull_exit" != "0" ]; then
+  echo "$pull_output"
+  echo "Fatal, could not update the lssh configuration because git pull failed" 1>&2
+  exit 1
+fi
 /usr/local/bin/lssh --load-from .
 """)
 os.chmod(wrapper_file, 0o755)
