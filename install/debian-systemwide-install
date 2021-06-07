@@ -34,7 +34,7 @@ if not parsed_args.packages:
     if not py_cui_available:
         print("The python module `py-cui' is missing.", file=sys.stderr)
     if len(missing_apt_packages) > 0 or not py_cui_available:
-        print("You may run this installer with -p (or --install-packages) to install dependencies automatically.", file=sys.stderr)
+        print("You may run this installer with -i (or --install-packages) to install dependencies automatically.", file=sys.stderr)
         print("Note: The uninstaller will not uninstall these dependencies", file=sys.stderr)
         sys.exit(1)
 
