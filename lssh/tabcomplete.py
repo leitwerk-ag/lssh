@@ -83,7 +83,7 @@ def main(hosts_dir):
         exit(run(["bash", "-c", compgen_cmd]).returncode)
     elif current_arg.startswith('-'):
         # option completion
-        choices = ['--help', '--load-from', '--replay', '--timestamp', '--update-hosts', '--verbose']
+        choices = ['--help', '--load-from', '--replay', '--timestamp', '--update-hosts', '--verbose', '--version']
     else:
         # substring completion
         try:

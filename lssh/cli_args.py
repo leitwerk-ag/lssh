@@ -11,6 +11,7 @@ def parse_args():
     parser.add_argument('--update-hosts', dest='update', action='store_true', help='Update the hostlist configuration files using the configured command. (Typically git pull followed by lssh --load-from ...)')
     parser.add_argument('--load-from', dest='load', metavar='SRCDIR', help='Load a new ssh config from the directory SRCDIR (that contains them as *.txt files), validate the config and (if valid) store it at the central location configured in lssh. You should not call this manually but instead run `lssh --update-hosts` that will also pull updates before loading the files.')
     parser.add_argument('-v', '--verbose', action='count', help='Verbose mode. Enables printing the resulting ssh command line before connecting.')
+    parser.add_argument('--version', dest='version', action='store_true', help='Show the current version number and exit.')
 
     options_summary = [c for c in parameterless_options + parameter_options]
     options_summary.sort(key=lambda c: (str.lower(c), c))

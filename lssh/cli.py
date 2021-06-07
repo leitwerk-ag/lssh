@@ -70,7 +70,9 @@ def main(hosts_dir, update_hosts):
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
-    if args.update:
+    if args.version:
+        print("lssh version dev")
+    elif args.update:
         update_hosts()
     elif args.load is not None:
         hostlist.import_new_config(args.load, hosts_dir)
