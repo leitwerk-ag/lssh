@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import py_cui
+import os, py_cui
 
 def flat_option_dialog(options, heading):
     '''
@@ -32,6 +32,12 @@ def flat_option_dialog(options, heading):
     root.start()
     return result[0]
 
+def term_variable_workaround():
+    term = os.environ.get("TERM")
+    if term in ("xterm", "screen"):
+        # These are values that py-cui cannot work with, so set it to xterm-256color
+        os.environ.putenv("TERM", "xterm-256color")
+
 def hierarchical_option_dialog(options, displaynames, heading_left, heading_right):
     '''
     Let the user choose an element from a two-layer hierarchical option tree.
@@ -48,6 +54,7 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
                      selected subnode.
                      Or returns None if the user aborted during selection.
     '''
+    term_variable_workaround()
     root = py_cui.PyCUI(1, 2)
     result = [None] # array is used to make the value mutable for inner functions
     left_idx = [0] # array for the same reason
