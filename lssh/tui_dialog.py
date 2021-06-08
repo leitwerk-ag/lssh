@@ -106,6 +106,8 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
 
     root.start()
 
+    if result[0] is None:
+        return None
     # Calculate the index back (entries were displayed in another order)
     left, right = result[0]
     left = options_enumerated[left][0]
