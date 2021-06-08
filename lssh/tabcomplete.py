@@ -108,7 +108,8 @@ def main(hosts_dir):
                 # Only one host remaining and this host is already given explicitly. No further suggestions for the tab-completion
                 choices = []
             else:
-                keyword_choices = {keyword for h in host_choices for keyword in hosts[h] if restricts(keyword, host_choices, hosts)}
+                keyword_options = {keyword for h in host_choices for keyword in hosts[h]}
+                keyword_choices = {keyword for keyword in keyword_options if restricts(keyword, host_choices, hosts)}
                 choices = host_choices | keyword_choices
         except FileNotFoundError:
             choices = []
