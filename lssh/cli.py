@@ -164,7 +164,7 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
     if rec_dir is not None:
-        final_command = ['script', '-t'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
+        final_command = ['script', '-et'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
     else:
         final_command = command
     try:
