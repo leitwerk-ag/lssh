@@ -16,7 +16,7 @@ Host fileserver
     User ftp
 ```
 
-These files are included in the configuration of ssh and must therefor be valid ssh_config syntax. But lssh puts further restrictions on the allowed configurations for security reasons. (For example to disallow code execution)
+These files are included in the configuration of ssh and must therefore be valid ssh_config syntax. But lssh puts further restrictions on the allowed configurations for security reasons. (For example to disallow code execution)
 
 ## Disallowed ssh_config options
 
