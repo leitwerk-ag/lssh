@@ -92,9 +92,9 @@ def import_new_config(srcpath, dstpath):
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
-            # Store the content in ram to prevent race-conditions (no extra read needed for copying)
-            contents[name] = content
-        errors += [name + ": " + e for e in config_validation.check_ssh_config_safety(content)]
+        file_errors, content = config_validation.check_ssh_config_safety(content)
+        errors += [name + ": " + e for e in file_errors]
+        contents[name] = "".join([line + "\n" for line in content])
     if len(errors) > 0:
         for error in errors:
             print(error, file=sys.stderr)
