@@ -85,6 +85,26 @@ def main(hosts_dir, update_hosts):
     else:
         connect(args, user, substring, additional_substrings, hosts_dir)
 
+def build_proxy_chain(selected, hosts):
+    chain = [selected]
+    cur_host = selected
+    while cur_host in hosts and hosts[cur_host].jumphost is not None:
+        cur_host = hosts[cur_host].jumphost
+        if cur_host in chain:
+            loop = " -> ".join([cur_host] + chain)
+            print("Error: There is a loop in the proxy hosts!", file=sys.stderr)
+            print("  ... -> " + loop, file=sys.stderr)
+            exit(1)
+        chain = [cur_host] + chain
+    return chain
+
+def show_proxy_chain(chain):
+    if len(chain) == 1:
+        print("Connecting to " + chain[0] + " without jumphost")
+    else:
+        print("Connecting via:")
+        print("  " + " -> ".join(chain))
+
 def select_host(substring, additional_substrings, hosts_dir):
     hosts, displaynames = hostlist.load_config(hosts_dir)
     if substring is None:
@@ -113,10 +133,11 @@ def select_host(substring, additional_substrings, hosts_dir):
             print("No host has been selected")
             sys.exit(1)
         selected = options[choice[0]][1][choice[1]]
-    return selected
+    proxy_chain = build_proxy_chain(selected, hosts)
+    return selected, proxy_chain
 
 def connect(args, user, substring, additional_substrings, hosts_dir):
-    selected = select_host(substring, additional_substrings, hosts_dir)
+    selected, proxy_chain = select_host(substring, additional_substrings, hosts_dir)
 
     options_dict = vars(args)
     command = ['ssh']
@@ -139,6 +160,7 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
         print("Warning: Could not create directory for session recording: " + str(e), file=sys.stderr)
         rec_dir = None
     ssh_commandline = ' '.join([shlex.quote(arg) for arg in command])
+    show_proxy_chain(proxy_chain)
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
     if rec_dir is not None:

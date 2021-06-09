@@ -8,6 +8,7 @@ class HostEntry:
         self.display_name = display_name
         self.customer = customer
         self.keywords = {customer}
+        self.jumphost = None
 
 def update_display_name_cache(entries, newest_timestamp, suppress_errors):
     try:
@@ -41,6 +42,9 @@ def load_config(path, suppress_errors=False):
                 if hostname not in entries:
                     entries[hostname] = cur_host[0]
                 file_hosts.append(cur_host[0])
+        m = re.match('^\s*proxyjump\s+([\S]+)\s*$', line, re.IGNORECASE)
+        if m and cur_host[0] is not None and cur_host[0].jumphost is None:
+            cur_host[0].jumphost = m.group(1)
         m = re.match('^\s*#\s*lssh:(file)?keywords\s(.*)$', line, re.IGNORECASE)
         if m:
             keywords_str = m.group(2)
