@@ -12,20 +12,11 @@ Host a.example.com
     Port 4444
 
 Host fileserver
-    HostKeyAlias fileserver
     HostName ftp.central.example.com
     User ftp
 ```
 
-These files are included in the configuration of ssh and must therefor be valid ssh_config syntax. But lssh puts further restrictions on the allowed configurations for security reasons. (For example to disallow code execution)
-
-## Special behavior with HostName
-
-SSH allows you to give hosts an alias name.
-
-As you can see in the example above, the host alias called `fileserver` (accessable using `ssh fileserver` or `lssh fileserver`) is accessed by connecting to the hostname `ftp.central.example.com`.
-
-However, in this case lssh requires an additional `HostKeyAlias` field with a value that is equal to the alias name. This is a security feature that leads to a hostkey warning if a user changes the ssh destination to another possibly untrusted target.
+These files are included in the configuration of ssh and must therefore be valid ssh_config syntax. But lssh puts further restrictions on the allowed configurations for security reasons. (For example to disallow code execution)
 
 ## Disallowed ssh_config options
 
@@ -38,6 +29,7 @@ For security reasons, the following options cannot be configured via the central
 - ForwardX11Trusted
 - GSSAPIDelegateCredentials
 - HashKnownHosts
+- HostKeyAlias
 - CheckHostIP
 - StrictHostKeyChecking
 - UpdateHostKeys

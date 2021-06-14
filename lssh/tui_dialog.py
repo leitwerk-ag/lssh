@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-import py_cui
+import os, py_cui
 
 def flat_option_dialog(options, heading):
     '''
@@ -32,6 +32,12 @@ def flat_option_dialog(options, heading):
     root.start()
     return result[0]
 
+def term_variable_workaround():
+    term = os.environ.get("TERM")
+    if term in ("xterm", "screen"):
+        # These are values that py-cui cannot work with, so set it to xterm-256color
+        os.environ.putenv("TERM", "xterm-256color")
+
 def hierarchical_option_dialog(options, displaynames, heading_left, heading_right):
     '''
     Let the user choose an element from a two-layer hierarchical option tree.
@@ -48,14 +54,28 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
                      selected subnode.
                      Or returns None if the user aborted during selection.
     '''
+    term_variable_workaround()
     root = py_cui.PyCUI(1, 2)
     result = [None] # array is used to make the value mutable for inner functions
     left_idx = [0] # array for the same reason
+    options_enumerated = list(enumerate(options))
+
+    def heading_display(name):
+        if name in displaynames:
+            return displaynames[name]
+        return name
+
+    def option_sortkey(option):
+        (enum_id, (heading, content)) = option
+        display = heading_display(heading)
+        return (display.lower(), display, heading)
+    # Sort by display names (case-insensitive sort if possible)
+    options_enumerated.sort(key=option_sortkey)
 
     def navigate_to_right():
         left_idx[0] = left_menu.get_selected_item_index()
         right_menu.clear()
-        right_menu.add_item_list(options[left_idx[0]][1])
+        right_menu.add_item_list(options_enumerated[left_idx[0]][1][1])
         root.move_focus(right_menu)
 
     def navigate_to_left():
@@ -67,13 +87,8 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
         result[0] = (left_idx[0], right_idx)
         root.stop()
 
-    def heading_display(name):
-        if name in displaynames:
-            return displaynames[name]
-        return name
-
     left_menu = root.add_scroll_menu(heading_left, 0, 0)
-    left_menu.add_item_list([heading_display(e[0]) for e in options])
+    left_menu.add_item_list([heading_display(entry[1][0]) for entry in options_enumerated])
     left_menu.set_color(py_cui.WHITE_ON_BLACK)
     left_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
     left_menu.add_key_command(py_cui.keys.KEY_ENTER, navigate_to_right)
@@ -90,4 +105,10 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
     root.move_focus(left_menu)
 
     root.start()
-    return result[0]
+
+    if result[0] is None:
+        return None
+    # Calculate the index back (entries were displayed in another order)
+    left, right = result[0]
+    left = options_enumerated[left][0]
+    return (left, right)

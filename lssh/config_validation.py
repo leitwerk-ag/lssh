@@ -88,6 +88,9 @@ instruction_whitelist = {
 # CheckHostIP, StrictHostKeyChecking, UpdateHostKeys, UserKnownHostsFile, VerifyHostKeyDNS, VisualHostKey:
 #   Hostkeys are security-critical. An attacker could effectively bypass hostkey checking, resulting in
 #   victims connecting to the wrong server without noticing.
+# HostKeyAlias
+#   This field is automatically added for each host that contains a HostName setting.
+#   It is needed for security reasons and must not be set manually.
 # Include:
 #   An attacker could include unwanted files (needs to be owned by root, but there might be a way to do so).
 #   This would bypass all the other security measures.
@@ -105,8 +108,8 @@ class HostSection():
         self.__heading_line_nr = line_nr
         self.__connectname_set = False
         self.__connectname_line = None
-        self.__alias_set = False
-        self.__alias_line = None
+    def current_host(self):
+        return self.__hostname
     def register_connectname(self, line_nr):
         if self.__hostname is None:
             return "Option HostName is not allowed on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
@@ -116,54 +119,38 @@ class HostSection():
             self.__connectname_set = True
             self.__connectname_line = line_nr
             return None
-    def set_hostkeyalias(self, alias, line_nr):
-        if self.__hostname is None:
-            return "Option HostKeyAlias is not allowed on line " + str(line_nr) + ", only allowed in an explicit Host section (one host, no wildcards)"
-        elif self.__alias_set:
-            return "Option HostKeyAlias is only allowed once per host block. (Appeared in line " + str(self.__alias_line) + " and " + str(line_nr) + ")"
-        elif alias != self.__hostname:
-            self.__alias_set = True
-            return "The value of the HostKeyAlias field on line " + str(line_nr) + " must match the host keyword of this host block (`" + self.__hostname + "')"
-        else:
-            self.__alias_set = True
-            self.__alias_line = line_nr
-            return None
-    def validate(self):
-        if self.__connectname_set and not self.__alias_set:
-            return "Host section beginning at line " + str(self.__heading_line_nr) + " must contain a `HostKeyAlias " + self.__hostname + "' because it contains a custom HostName setting."
 
-def check_line(section, line, nr):
+def validate_line(section, line, nr, output_lines):
     if re.match('^\\s*$', line):
         # line is empty
         return None
     if re.match('^\\s*#.*', line):
         # line just contains a comment
         return None
-    m = re.match('^\\s*([a-zA-Z]+) (.*)$', line)
+    m = re.match('^(\\s*)([a-zA-Z]+) (.*)$', line)
     if m:
         # found an instruction
-        instruction = m.group(1)
+        instruction = m.group(2)
         instruction_l = instruction.lower()
         if instruction_l in instruction_whitelist:
             # allowed setting
             return None
         elif instruction_l == 'host':
-            # A new section begins here. First validate the previous section (Ensure no fields are missing)
-            validation = section.validate()
-            # Now reset for a new section
-            name = m.group(2)
+            # Reset for a new section
+            name = m.group(3)
             if '*' in name or '?' in name or ' ' in name.strip():
                 section.reset(None, None)
             elif not re.match('^[a-zA-Z0-9\\.\\-_]+$', name.strip()):
                 return "The hostname " + name.strip() + " (line " + str(nr) + ") contains invalid characters."
             else:
-                section.reset(m.group(2), nr)
-            return validation
+                section.reset(m.group(3), nr)
+            return None
         elif instruction_l == 'hostname':
             # If HostName is set, HostKeyAlias must also be set.
-            return section.register_connectname(nr)
-        elif instruction_l == 'hostkeyalias':
-            return section.set_hostkeyalias(m.group(2), nr)
+            result = section.register_connectname(nr)
+            if result is None:
+                output_lines.append(m.group(1) + "HostKeyAlias " + section.current_host())
+            return result
         # disallowed setting
         return "Option `" + instruction + "' (line " + str(nr) + ") is not whitelisted."
     # could not parse this line
@@ -179,13 +166,14 @@ def check_ssh_config_safety(content):
     An array of error messages is returned. If it is empty, the check was successful.
     '''
     lines = content.split("\n")
+    output_lines = []
     line_nr = 1
     errors = []
     section = HostSection()
     for line in lines:
-        error = check_line(section, line, line_nr)
+        output_lines.append(line)
+        error = validate_line(section, line, line_nr, output_lines)
         if error is not None:
             errors.append(error)
         line_nr += 1
-    section.validate()
-    return errors
+    return (errors, output_lines)
