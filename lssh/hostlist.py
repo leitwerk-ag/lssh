@@ -92,35 +92,43 @@ def import_new_config(srcpath, dstpath):
     dstfiles = [name for name in os.listdir(dstpath) if name.endswith(".txt") and os.path.isfile(dstpath / name)]
 
     contents = {}
+    error_files = set()
     errors = []
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
         file_errors, content = config_validation.check_ssh_config_safety(content)
-        errors += [name + ": " + e for e in file_errors]
+        if len(file_errors) > 0:
+            error_files.add(name)
+            errors += [name + ": " + e for e in file_errors]
         contents[name] = "".join([line + "\n" for line in content])
     if len(errors) > 0:
         for error in errors:
             print(error, file=sys.stderr)
-        print("Could not import the new config because of " + ("this error" if len(errors) == 1 else "these errors"), file=sys.stderr)
-        sys.exit(1)
+        print("Could not completely import the new config because of " + ("this error" if len(errors) == 1 else "these errors"), file=sys.stderr)
+        print("Files containing errors will not be updated.", file=sys.stderr)
 
     # Write new config to destination dir
     for name in srcfiles:
-        try:
-            with open(dstpath / name, "r+") as f:
-                # First check, if the file did actually change
-                # Simply overwriting would change the file's modification date, resulting in cache-rebuilds
-                content = f.read()
-                if content != contents[name]:
-                    f.seek(0)
-                    f.truncate()
+        if name not in error_files:
+            try:
+                with open(dstpath / name, "r+") as f:
+                    # First check, if the file did actually change
+                    # Simply overwriting would change the file's modification date, resulting in cache-rebuilds
+                    content = f.read()
+                    if content != contents[name]:
+                        f.seek(0)
+                        f.truncate()
+                        f.write(contents[name])
+            except FileNotFoundError:
+                # File does not exist yet, just create it
+                with open(dstpath / name, "w") as f:
                     f.write(contents[name])
-        except FileNotFoundError:
-            # File does not exist yet, just create it
-            with open(dstpath / name, "w") as f:
-                f.write(contents[name])
 
     # Delete files from destination that were removed in source
     for name in set(dstfiles) - set(srcfiles):
         os.unlink(dstpath / name)
+
+    if len(errors) > 0:
+        exit(1)
+    exit(0)
