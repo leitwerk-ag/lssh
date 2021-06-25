@@ -7,8 +7,10 @@ class HostEntry:
     def __init__(self, display_name, customer):
         self.display_name = display_name
         self.customer = customer
-        self.keywords = {customer}
+        self.keywords = set()
         self.jumphost = None
+    def add_customer_as_keyword(self):
+        self.keywords.add(self.customer)
 
 def update_display_name_cache(entries, newest_timestamp, suppress_errors):
     try:
@@ -58,6 +60,13 @@ def load_config(path, suppress_errors=False):
         m = re.match('^\s*#\s*lssh:displayname\s+(\S.*)$', line, re.IGNORECASE)
         if m and file_displayname[0] is None:
             file_displayname[0] = m.group(1)
+        m = re.match('^\s*#\s*lssh:assignedcustomer\s+(\S.*)$', line, re.IGNORECASE)
+        if m and cur_host[0] is not None:
+            name = m.group(1)
+            # allow both: with or without file ending .txt
+            if name.endswith(".txt"):
+                name = name[0:-4]
+            cur_host[0].customer = name
     files = os.listdir(path)
     files.sort()
     newest_timestamp = os.stat(path).st_mtime
@@ -80,6 +89,8 @@ def load_config(path, suppress_errors=False):
                     displaynames[basename] = file_displayname[0]
             stat = os.stat(name)
             newest_timestamp = max(newest_timestamp, stat.st_mtime)
+    for entry in entries.values():
+        entry.add_customer_as_keyword()
     update_display_name_cache(entries, newest_timestamp, suppress_errors)
 
     return (entries, displaynames)
