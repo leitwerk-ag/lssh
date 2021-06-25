@@ -45,7 +45,7 @@ For security reasons, the following options cannot be configured via the central
 - XAuthLocation
 - SendEnv
 
-If one of these options appears in the git repository, lssh refuses to update its machine-local configuration and shows an error message when executing `lssh --update-hosts`.
+If one of these options appears in the git repository, lssh will not update the affected files in its machine-local configuration but will instead show an error message when executing `lssh --update-hosts`.
 
 ## Additional lssh attributes
 
@@ -57,12 +57,13 @@ In each configuration file the options `#lssh:displayname` and `#lssh:filekeywor
 
 Host fileserver
     #lssh:keywords transfer, storage
+    #lssh:assignedcustomer important-company
     HostKeyAlias fileserver
     HostName ftp.central.example.com
     User ftp
 ```
 
-The hash character makes this line a comment for ssh, but lssh reads these settings.
+The hash character makes thiese lines a comment for ssh, but lssh reads these settings.
 
 ### `#lssh:displayname`
 
@@ -75,3 +76,11 @@ The comma-separated keywords of this options are associated with all hosts of th
 ### `#lssh:keywords`
 
 Keywords must be specified inside of a host block. If one of the given keywords or a substring is given on the lssh call, it will match this specific host.
+
+### `#lssh:assignedcustomer`
+
+This attribute allows to assign hosts of one file to a customer that is normally associated with another file. This is useful for adding automatic host-exports to the repository without modifying user-edited files.
+
+Assume, the file in the example above is called `example.txt`. The `#lssh:assignedcustomer` instruction will ensure, that `fileserver` appears in the same customer section as the hosts defined in `important-company.txt`. Without this instruction, it would appear in the section `example.com Hosts`.
+
+The names of both files will be added as search keywords for affected hosts. Filekeywords are taken from the file where the host is acutally described, not where it is assigned to.
