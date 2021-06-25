@@ -7,8 +7,10 @@ class HostEntry:
     def __init__(self, display_name, customer):
         self.display_name = display_name
         self.customer = customer
-        self.keywords = {customer}
+        self.keywords = set()
         self.jumphost = None
+    def add_customer_as_keyword(self):
+        self.keywords.add(self.customer)
 
 def update_display_name_cache(entries, newest_timestamp, suppress_errors):
     try:
@@ -58,6 +60,13 @@ def load_config(path, suppress_errors=False):
         m = re.match('^\s*#\s*lssh:displayname\s+(\S.*)$', line, re.IGNORECASE)
         if m and file_displayname[0] is None:
             file_displayname[0] = m.group(1)
+        m = re.match('^\s*#\s*lssh:assignedcustomer\s+(\S.*)$', line, re.IGNORECASE)
+        if m and cur_host[0] is not None:
+            name = m.group(1)
+            # allow both: with or without file ending .txt
+            if name.endswith(".txt"):
+                name = name[0:-4]
+            cur_host[0].customer = name
     files = os.listdir(path)
     files.sort()
     newest_timestamp = os.stat(path).st_mtime
@@ -80,6 +89,8 @@ def load_config(path, suppress_errors=False):
                     displaynames[basename] = file_displayname[0]
             stat = os.stat(name)
             newest_timestamp = max(newest_timestamp, stat.st_mtime)
+    for entry in entries.values():
+        entry.add_customer_as_keyword()
     update_display_name_cache(entries, newest_timestamp, suppress_errors)
 
     return (entries, displaynames)
@@ -92,35 +103,43 @@ def import_new_config(srcpath, dstpath):
     dstfiles = [name for name in os.listdir(dstpath) if name.endswith(".txt") and os.path.isfile(dstpath / name)]
 
     contents = {}
+    error_files = set()
     errors = []
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
         file_errors, content = config_validation.check_ssh_config_safety(content)
-        errors += [name + ": " + e for e in file_errors]
+        if len(file_errors) > 0:
+            error_files.add(name)
+            errors += [name + ": " + e for e in file_errors]
         contents[name] = "".join([line + "\n" for line in content])
     if len(errors) > 0:
         for error in errors:
             print(error, file=sys.stderr)
-        print("Could not import the new config because of " + ("this error" if len(errors) == 1 else "these errors"), file=sys.stderr)
-        sys.exit(1)
+        print("Could not completely import the new config because of " + ("this error" if len(errors) == 1 else "these errors"), file=sys.stderr)
+        print("Files containing errors will not be updated.", file=sys.stderr)
 
     # Write new config to destination dir
     for name in srcfiles:
-        try:
-            with open(dstpath / name, "r+") as f:
-                # First check, if the file did actually change
-                # Simply overwriting would change the file's modification date, resulting in cache-rebuilds
-                content = f.read()
-                if content != contents[name]:
-                    f.seek(0)
-                    f.truncate()
+        if name not in error_files:
+            try:
+                with open(dstpath / name, "r+") as f:
+                    # First check, if the file did actually change
+                    # Simply overwriting would change the file's modification date, resulting in cache-rebuilds
+                    content = f.read()
+                    if content != contents[name]:
+                        f.seek(0)
+                        f.truncate()
+                        f.write(contents[name])
+            except FileNotFoundError:
+                # File does not exist yet, just create it
+                with open(dstpath / name, "w") as f:
                     f.write(contents[name])
-        except FileNotFoundError:
-            # File does not exist yet, just create it
-            with open(dstpath / name, "w") as f:
-                f.write(contents[name])
 
     # Delete files from destination that were removed in source
     for name in set(dstfiles) - set(srcfiles):
         os.unlink(dstpath / name)
+
+    if len(errors) > 0:
+        exit(1)
+    exit(0)
