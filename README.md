@@ -31,7 +31,7 @@ There is also a corresponding uninstaller:
 ### Other distributions
 
 If you use another distribution or want custom settings, you can also install and configure lssh manually.  
-See [Installing lssh manually](./install/install-manually.md).
+See [Installing lssh manually](./docs/install-manually.md).
 
 ## Using lssh
 
