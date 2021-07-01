@@ -125,12 +125,25 @@ def update_hosts():
     import subprocess
     subprocess.run(["sudo", "/var/local/lssh/pull.sh"])
 
+def build_cmd_whitelist():
+    from lssh import command_whitelist
+    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
+
 sys.path.append("/usr/local/lib")
 
 from lssh import main
-main.main(hosts_dir, update_hosts)
+main.main(hosts_dir, update_hosts, build_cmd_whitelist)
 """)
 os.chmod(lssh_file, 0o755)
+
+# Create remotecommand-whitelist config file
+remotecommand_whitelist_file = "/etc/lssh/remotecommand-whitelist.csv"
+print("Creating config file " + remotecommand_whitelist_file + " ...")
+if os.path.isfile(remotecommand_whitelist_file):
+    print("  (did already exist)")
+else:
+    os.makedirs("/etc/lssh", exist_ok=True)
+    open(remotecommand_whitelist_file, "a").close()
 
 # Add a section to the ssh config
 print("Setting relevant configs in /etc/ssh/ssh_config ...")

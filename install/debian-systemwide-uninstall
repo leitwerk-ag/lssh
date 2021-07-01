@@ -22,6 +22,7 @@ def remove_file(note, name):
 
 remove_dir("/usr/local/lib/lssh")
 remove_dir("/var/local/lssh")
+remove_dir("/etc/lssh")
 
 remove_file("sudo rule", "/etc/sudoers.d/lssh")
 remove_file("lssh executable", "/usr/local/bin/lssh")
