@@ -94,17 +94,6 @@ Include <hosts validated>/*.txt
 
 Replace `<hosts validated>` with your `$HOSTS_VALIDATED`.
 
-### General proxy
-
-This step is optional. You may also specify a global proxy machine in the ssh client configuration. This proxy will always be used as a first connection step to the target machine.
-
-To activate the proxy, add the settings using the following template below the include-instruction from before:
-
-```
-Match originalhost !example.com,*
-ProxyJump example.com
-```
-
 Replace `example.com` with the actual alias hostname of your proxy in both lines.
 
 ## Setup bash completion
@@ -113,4 +102,66 @@ Put the following instruction into a bash startup file for example `~/.bashrc`
 
 ```bash
 complete -o filenames -C 'lssh __complete__' lssh
+```
+
+# Optional settings
+
+## General first proxy
+
+You may specify a global proxy machine in the ssh client configuration. This proxy will always be used as a first connection step to the target machine.
+
+To activate the proxy, add the settings using the following template below the include-instruction that you put in your ssh client configuration file:
+
+```
+Match originalhost !example.com,*
+ProxyJump example.com
+```
+
+## Allow remote commands
+
+The configuration option `RemoteCommand` is not allowed by default in the central ssh configuration file. It would allow to execute arbitrary commands on any target host just by changing the configuration.
+
+To allow the `RemoteCommand` option, you need to specify a whitelist of allowed commands.
+
+| :information_source: Please note |
+|---|
+| This whitelist does not restrict users from executing commands on the server. It restricts the central ssh config from executing commands automatically. |
+
+The lssh executable at `$BIN/lssh` contains the following last line:
+
+```python
+main.main(validated, update_hosts)
+```
+
+The function `main.main` accepts an optional third argument, `cmd_whitelist_func`. If specified, it must be a callable that returns a list of whitelist rules.
+
+Each whitelist rule is a 3-tuple in the form `(user, hostname, command)`.
+
+|field|content|
+|--|--|
+|`user`|The remote username this rule applies for. May be `None` to allow the command for every target user.|
+|`hostname`|The dns name of the target host. (not the host alias, if the `HostName` config is specified) May be `None` to allow the command on every target host.|
+|`command`|The base command (command without options) that is allowed. For example, to base command of `ls -al` is just `ls`.|
+
+### Example
+
+When connecting to `root@example.com`, we want to automatically execute `ls -t`.
+
+The following ssh configuration may be used to achieve this:
+
+```
+Host examplehost
+    HostName example.com
+    User root
+    RemoteCommand ls -t
+```
+
+Now a whitelist is needed on every lssh installation, otherwise lssh will refuse to import the above configuration.
+
+```python
+def build_cmd_whitelist():
+    return [
+        ("root", "example.com", "ls"),
+    ]
+main.main(validated, update_hosts, build_cmd_whitelist)
 ```
