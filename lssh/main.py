@@ -7,10 +7,10 @@
 
 import sys
 
-def main(hosts_dir, update_hosts):
+def main(hosts_dir, update_hosts, cmd_whitelist_func = None):
     if len(sys.argv) >= 2 and sys.argv[1] == '__complete__':
         from lssh import tabcomplete
         tabcomplete.main(hosts_dir)
     else:
         from lssh import cli
-        cli.main(hosts_dir, update_hosts)
+        cli.main(hosts_dir, update_hosts, cmd_whitelist_func)

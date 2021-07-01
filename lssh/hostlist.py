@@ -95,7 +95,7 @@ def load_config(path, suppress_errors=False):
 
     return (entries, displaynames)
 
-def import_new_config(srcpath, dstpath):
+def import_new_config(srcpath, dstpath, cmd_whitelist_func):
     srcpath = pathlib.Path(srcpath)
     dstpath = pathlib.Path(dstpath)
     srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
@@ -105,10 +105,14 @@ def import_new_config(srcpath, dstpath):
     contents = {}
     error_files = set()
     errors = []
+    if cmd_whitelist_func is None:
+        cmd_whitelist = []
+    else:
+        cmd_whitelist = list(cmd_whitelist_func())
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
-        file_errors, content = config_validation.check_ssh_config_safety(content)
+        file_errors, content = config_validation.check_ssh_config_safety(content, cmd_whitelist)
         if len(file_errors) > 0:
             error_files.add(name)
             errors += [name + ": " + e for e in file_errors]
