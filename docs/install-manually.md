@@ -119,13 +119,7 @@ ProxyJump example.com
 
 ## Allow remote commands
 
-The configuration option `RemoteCommand` is not allowed by default in the central ssh configuration file. It would allow to execute arbitrary commands on any target host just by changing the configuration.
-
-To allow the `RemoteCommand` option, you need to specify a whitelist of allowed commands.
-
-| :information_source: Please note |
-|---|
-| This whitelist does not restrict users from executing commands on the server. It restricts the central ssh config from executing commands automatically. |
+For details what is needed to allow the automatic execution of remote commands, see [remote-command-whitelist.md](remote-command-whitelist.md). In the following, the setup of a whitelist is explained.
 
 The lssh executable at `$BIN/lssh` contains the following last line:
 
@@ -135,28 +129,9 @@ main.main(validated, update_hosts)
 
 The function `main.main` accepts an optional third argument, `cmd_whitelist_func`. If specified, it must be a callable that returns a list of whitelist rules.
 
-Each whitelist rule is a 3-tuple in the form `(user, hostname, command)`.
+Each whitelist rule is a 3-tuple in the form `(user, hostname, command)`. For the meaning of these fields, see [remote-command-whitelist.md](remote-command-whitelist.md).
 
-|field|content|
-|--|--|
-|`user`|The remote username this rule applies for. May be `None` to allow the command for every target user.|
-|`hostname`|The dns name of the target host. (not the host alias, if the `HostName` config is specified) May be `None` to allow the command on every target host.|
-|`command`|The base command (command without options) that is allowed. For example, to base command of `ls -al` is just `ls`.|
-
-### Example
-
-When connecting to `root@example.com`, we want to automatically execute `ls -t`.
-
-The following ssh configuration may be used to achieve this:
-
-```
-Host examplehost
-    HostName example.com
-    User root
-    RemoteCommand ls -t
-```
-
-Now a whitelist is needed on every lssh installation, otherwise lssh will refuse to import the above configuration.
+An example configuration may look like this:
 
 ```python
 def build_cmd_whitelist():
@@ -164,4 +139,14 @@ def build_cmd_whitelist():
         ("root", "example.com", "ls"),
     ]
 main.main(validated, update_hosts, build_cmd_whitelist)
+```
+
+If you like to use a csv file instead (this is the configuration when running `debian-systemwide-install`), you may use the following code:
+
+```python
+def build_cmd_whitelist():
+    from lssh import command_whitelist
+    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
+
+main.main(hosts_dir, update_hosts, build_cmd_whitelist)
 ```
