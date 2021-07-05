@@ -64,18 +64,18 @@ def create_recording_directory(hostname):
             except FileExistsError:
                 pass
 
-def main(hosts_dir, update_hosts):
+def main(hosts_dir, update_hosts, cmd_whitelist_func):
     args = cli_args.parse_args()
 
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
     if args.version:
-        print("lssh version 0.3.0")
+        print("lssh version 0.4.0")
     elif args.update:
         update_hosts()
     elif args.load is not None:
-        hostlist.import_new_config(args.load, hosts_dir)
+        hostlist.import_new_config(args.load, hosts_dir, cmd_whitelist_func)
     elif args.replay or args.time is not None:
         if substring is None:
             all_substrings = []
