@@ -20,7 +20,6 @@ instruction_whitelist = {
     'connectionattempts',
     'connecttimeout',
     'controlmaster',
-    'controlpath',
     'controlpersist',
     'dynamicforward',
     'enablesshkeysign',
@@ -74,6 +73,9 @@ instruction_whitelist = {
 }
 
 # The following entries are intentionally not listed on the instruction_whitelist:
+# ControlPath:
+#   An attacker could redirect ssh connections by providing a CrontrolMaster socket
+#   and redirecting the ControlPath of other users to this socket.
 # Match:
 #   Match exec ... allows an attacker to specify arbitrary commands
 # ForwardAgent:
