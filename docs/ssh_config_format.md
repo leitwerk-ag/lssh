@@ -22,6 +22,7 @@ These files are included in the configuration of ssh and must therefore be valid
 
 For security reasons, the following options cannot be configured via the central git repository:
 
+- ControlPath
 - Match
 - ForwardAgent
 - ForwardX11
@@ -46,6 +47,10 @@ For security reasons, the following options cannot be configured via the central
 - SendEnv
 
 If one of these options appears in the git repository, lssh will not update the affected files in its machine-local configuration but will instead show an error message when executing `lssh --update-hosts`.
+
+### RemoteCommand
+
+A special case is the RemoteCommand config option, because you can specify a whitelist of allowed commands. For details, see [remote-command-whitellist.md](remote-command-whitellist.md).
 
 ## Additional lssh attributes
 

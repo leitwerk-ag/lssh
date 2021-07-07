@@ -1,6 +1,7 @@
-import json, os, pathlib, re, sys
+import csv, json, os, pathlib, re, sys
 
-from lssh import config_validation
+from lssh import config_validation, xdg_compat
+from lssh.command_whitelist import load_default_paths
 from lssh.tabcomplete import host_cache_path
 
 class HostEntry:
@@ -95,7 +96,7 @@ def load_config(path, suppress_errors=False):
 
     return (entries, displaynames)
 
-def import_new_config(srcpath, dstpath, cmd_whitelist_func):
+def import_new_config(srcpath, dstpath):
     srcpath = pathlib.Path(srcpath)
     dstpath = pathlib.Path(dstpath)
     srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
@@ -105,10 +106,8 @@ def import_new_config(srcpath, dstpath, cmd_whitelist_func):
     contents = {}
     error_files = set()
     errors = []
-    if cmd_whitelist_func is None:
-        cmd_whitelist = []
-    else:
-        cmd_whitelist = list(cmd_whitelist_func())
+    cmd_whitelist = load_default_paths()
+
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()

@@ -64,7 +64,7 @@ def create_recording_directory(hostname):
             except FileExistsError:
                 pass
 
-def main(hosts_dir, update_hosts, cmd_whitelist_func):
+def main(hosts_dir, update_hosts):
     args = cli_args.parse_args()
 
     user, substring = split_user_from_substring(args.substring)
@@ -75,7 +75,7 @@ def main(hosts_dir, update_hosts, cmd_whitelist_func):
     elif args.update:
         update_hosts()
     elif args.load is not None:
-        hostlist.import_new_config(args.load, hosts_dir, cmd_whitelist_func)
+        hostlist.import_new_config(args.load, hosts_dir)
     elif args.replay or args.time is not None:
         if substring is None:
             all_substrings = []

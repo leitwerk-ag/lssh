@@ -116,37 +116,3 @@ To activate the proxy, add the settings using the following template below the i
 Match originalhost !example.com,*
 ProxyJump example.com
 ```
-
-## Allow remote commands
-
-For details what is needed to allow the automatic execution of remote commands, see [remote-command-whitelist.md](remote-command-whitelist.md). In the following, the setup of a whitelist is explained.
-
-The lssh executable at `$BIN/lssh` contains the following last line:
-
-```python
-main.main(validated, update_hosts)
-```
-
-The function `main.main` accepts an optional third argument, `cmd_whitelist_func`. If specified, it must be a callable that returns a list of whitelist rules.
-
-Each whitelist rule is a 3-tuple in the form `(user, hostname, command)`. For the meaning of these fields, see [remote-command-whitelist.md](remote-command-whitelist.md).
-
-An example configuration may look like this:
-
-```python
-def build_cmd_whitelist():
-    return [
-        ("root", "example.com", "ls"),
-    ]
-main.main(validated, update_hosts, build_cmd_whitelist)
-```
-
-If you like to use a csv file instead (this is the configuration when running `debian-systemwide-install`), you may use the following code:
-
-```python
-def build_cmd_whitelist():
-    from lssh import command_whitelist
-    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
-
-main.main(hosts_dir, update_hosts, build_cmd_whitelist)
-```

@@ -125,14 +125,10 @@ def update_hosts():
     import subprocess
     subprocess.run(["sudo", "/var/local/lssh/pull.sh"])
 
-def build_cmd_whitelist():
-    from lssh import command_whitelist
-    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
-
 sys.path.append("/usr/local/lib")
 
 from lssh import main
-main.main(hosts_dir, update_hosts, build_cmd_whitelist)
+main.main(hosts_dir, update_hosts)
 """)
 os.chmod(lssh_file, 0o755)
 
