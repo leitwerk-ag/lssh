@@ -2,6 +2,12 @@
 
 import os, py_cui
 
+def term_variable_workaround():
+    term = os.environ.get("TERM")
+    if term in ("xterm", "screen"):
+        # These are values that py-cui cannot work with, so set it to xterm-256color
+        os.environ.putenv("TERM", "xterm-256color")
+
 def flat_option_dialog(options, heading):
     '''
     Let the user choose an element from a list.
@@ -13,6 +19,7 @@ def flat_option_dialog(options, heading):
     Return:     Returns the index of the chose element or None if the user
                 aborted during selection.
     '''
+    term_variable_workaround()
     root = py_cui.PyCUI(1, 1)
     result = [None] # array is used to make the value mutable for the return_entry function
 
@@ -31,12 +38,6 @@ def flat_option_dialog(options, heading):
 
     root.start()
     return result[0]
-
-def term_variable_workaround():
-    term = os.environ.get("TERM")
-    if term in ("xterm", "screen"):
-        # These are values that py-cui cannot work with, so set it to xterm-256color
-        os.environ.putenv("TERM", "xterm-256color")
 
 def hierarchical_option_dialog(options, displaynames, heading_left, heading_right):
     '''
