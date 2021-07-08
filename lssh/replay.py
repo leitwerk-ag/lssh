@@ -23,7 +23,7 @@ def replay_recording(dirname):
     recording_path = xdg_compat.data_home() / 'lssh' / 'recordings' / dirname
     timing_file = str(recording_path / 'timing')
     output_file = str(recording_path / 'output')
-    command = ['scriptreplay', '-t', timing_file, output_file]
+    command = ['scriptreplay', '-m', '2', '-t', timing_file, output_file]
     sys.exit(subprocess.run(command).returncode)
 
 def replay(substrings, timestamp):
