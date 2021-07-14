@@ -146,3 +146,22 @@ def import_new_config(srcpath, dstpath):
     if len(errors) > 0:
         exit(1)
     exit(0)
+
+def validate_config(srcdir):
+    srcpath = pathlib.Path(srcdir)
+    srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
+    srcfiles.sort()
+
+    errors = []
+    cmd_whitelist = load_default_paths()
+
+    for name in srcfiles:
+        with open(srcpath / name, "r") as f:
+            content = f.read()
+        file_errors, _ = config_validation.check_ssh_config_safety(content, cmd_whitelist)
+        errors += [name + ": " + e for e in file_errors]
+    if len(errors) > 0:
+        for error in errors:
+            print(error, file=sys.stderr)
+        exit(1)
+    exit(0)

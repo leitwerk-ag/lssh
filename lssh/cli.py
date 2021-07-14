@@ -72,6 +72,8 @@ def main(hosts_dir, update_hosts):
     ensure_no_usernames(additional_substrings)
     if args.version:
         print("lssh version dev")
+    elif args.validate is not None:
+        hostlist.validate_config(args.validate)
     elif args.update:
         update_hosts()
     elif args.load is not None:
