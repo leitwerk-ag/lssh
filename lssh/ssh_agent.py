@@ -4,6 +4,9 @@ from lssh import xdg_compat
 def ssh_agent_config_filename():
     return xdg_compat.cache_home() / 'lssh' / 'ssh_agent.config'
 
+def ssh_agent_socket_filename():
+    return xdg_compat.cache_home() / 'lssh' / 'ssh_agent.socket'
+
 def load_config():
     try:
         with open(ssh_agent_config_filename(), 'r') as f:
@@ -27,7 +30,10 @@ def start_agent():
     except Exception as e:
         print("Warning: Failed to store ssh agent configuration: " + str(e), file=sys.stderr)
         return {}
-    completed = subprocess.run(['ssh-agent', '-c'], capture_output=True)
+    sock_path = ssh_agent_socket_filename()
+    if os.path.exists(sock_path):
+        os.unlink(sock_path)
+    completed = subprocess.run(['ssh-agent', '-a', sock_path, '-c'], capture_output=True)
     output = completed.stdout.decode()
     lines = output.split("\n")
     env_vars = {}
