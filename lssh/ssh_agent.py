@@ -33,7 +33,8 @@ def start_agent():
     sock_path = ssh_agent_socket_filename()
     if os.path.exists(sock_path):
         os.unlink(sock_path)
-    completed = subprocess.run(['ssh-agent', '-a', sock_path, '-c'], capture_output=True)
+    # -t 43200: Keep keys for 12 hours
+    completed = subprocess.run(['ssh-agent', '-a', sock_path, '-t', '43200', '-c'], capture_output=True)
     output = completed.stdout.decode()
     lines = output.split("\n")
     env_vars = {}
