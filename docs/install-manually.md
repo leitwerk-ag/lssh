@@ -96,6 +96,17 @@ Replace `<hosts validated>` with your `$HOSTS_VALIDATED`.
 
 Replace `example.com` with the actual alias hostname of your proxy in both lines.
 
+## Automatically update host entries
+
+Crontabs can be edited with the command `crontab -l`  
+Use the following template for an entry in your crontab:
+
+```
+42 * * * * <bin>/lssh --update-hosts
+```
+
+Replace `<bin>` with your `$BIN` directory. An absolute path to lssh is often needed because cronjobs run with a minimalistic `$PATH` environment variable.
+
 ## Setup bash completion
 
 Put the following instruction into a bash startup file for example `~/.bashrc`
