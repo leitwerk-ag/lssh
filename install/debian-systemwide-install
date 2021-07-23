@@ -114,6 +114,15 @@ os.chmod(sudo_rule_file, 0o440)
 # Create the lssh executable file
 lssh_file = "/usr/local/bin/lssh"
 print("Creating lssh executable in " + str(lssh_file) + " ...")
+if parsed_args.proxy is not None:
+    main_call = """options = {
+    "general_proxy": """ + repr(parsed_args.proxy) + """,
+}
+main.main(hosts_dir, update_hosts, attributes=options)
+"""
+else:
+    main_call = "main.main(hosts_dir, update_hosts)\n"
+
 with open(lssh_file, "w") as f:
     f.write("""#! /usr/bin/env python3
 
@@ -125,15 +134,10 @@ def update_hosts():
     import subprocess
     subprocess.run(["sudo", "/var/local/lssh/pull.sh"])
 
-def build_cmd_whitelist():
-    from lssh import command_whitelist
-    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
-
 sys.path.append("/usr/local/lib")
 
 from lssh import main
-main.main(hosts_dir, update_hosts, build_cmd_whitelist)
-""")
+""" + main_call)
 os.chmod(lssh_file, 0o755)
 
 # Create remotecommand-whitelist config file
@@ -147,7 +151,7 @@ else:
 
 # Add a section to the ssh config
 print("Setting relevant configs in /etc/ssh/ssh_config ...")
-ssh_config.add_section(parsed_args.proxy)
+ssh_config.add_section()
 
 # Setup tab-completion
 complete_file = "/etc/bash_completion.d/lssh_completion"

@@ -96,6 +96,17 @@ Replace `<hosts validated>` with your `$HOSTS_VALIDATED`.
 
 Replace `example.com` with the actual alias hostname of your proxy in both lines.
 
+## Automatically update host entries
+
+Crontabs can be edited with the command `crontab -l`  
+Use the following template for an entry in your crontab:
+
+```
+42 * * * * <bin>/lssh --update-hosts
+```
+
+Replace `<bin>` with your `$BIN` directory. An absolute path to lssh is often needed because cronjobs run with a minimalistic `$PATH` environment variable.
+
 ## Setup bash completion
 
 Put the following instruction into a bash startup file for example `~/.bashrc`
@@ -108,45 +119,15 @@ complete -o filenames -C 'lssh __complete__' lssh
 
 ## General first proxy
 
-You may specify a global proxy machine in the ssh client configuration. This proxy will always be used as a first connection step to the target machine.
+You may specify a global proxy machine in the lssh executable. This proxy will always be used as a first connection step to the target machine.
 
-To activate the proxy, add the settings using the following template below the include-instruction that you put in your ssh client configuration file:
-
-```
-Match originalhost !example.com,*
-ProxyJump example.com
-```
-
-## Allow remote commands
-
-For details what is needed to allow the automatic execution of remote commands, see [remote-command-whitelist.md](remote-command-whitelist.md). In the following, the setup of a whitelist is explained.
-
-The lssh executable at `$BIN/lssh` contains the following last line:
+To activate the proxy, replace the line `main.main(...)` at the end of the lssh executable file with the following template:
 
 ```python
-main.main(validated, update_hosts)
+options = {
+    "general_proxy": "example.com",
+}
+main.main(hosts_dir, update_hosts, attributes=options)
 ```
 
-The function `main.main` accepts an optional third argument, `cmd_whitelist_func`. If specified, it must be a callable that returns a list of whitelist rules.
-
-Each whitelist rule is a 3-tuple in the form `(user, hostname, command)`. For the meaning of these fields, see [remote-command-whitelist.md](remote-command-whitelist.md).
-
-An example configuration may look like this:
-
-```python
-def build_cmd_whitelist():
-    return [
-        ("root", "example.com", "ls"),
-    ]
-main.main(validated, update_hosts, build_cmd_whitelist)
-```
-
-If you like to use a csv file instead (this is the configuration when running `debian-systemwide-install`), you may use the following code:
-
-```python
-def build_cmd_whitelist():
-    from lssh import command_whitelist
-    return command_whitelist.load("/etc/lssh/remotecommand-whitelist.csv")
-
-main.main(hosts_dir, update_hosts, build_cmd_whitelist)
-```
+Replace `example.com` with your actual proxy host you want to use.

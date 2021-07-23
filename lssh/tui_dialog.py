@@ -2,6 +2,12 @@
 
 import os, py_cui
 
+def term_variable_workaround():
+    term = os.environ.get("TERM")
+    if term in ("xterm", "screen"):
+        # These are values that py-cui cannot work with, so set it to xterm-256color
+        os.environ.putenv("TERM", "xterm-256color")
+
 def flat_option_dialog(options, heading):
     '''
     Let the user choose an element from a list.
@@ -13,6 +19,7 @@ def flat_option_dialog(options, heading):
     Return:     Returns the index of the chose element or None if the user
                 aborted during selection.
     '''
+    term_variable_workaround()
     root = py_cui.PyCUI(1, 1)
     result = [None] # array is used to make the value mutable for the return_entry function
 
@@ -31,12 +38,6 @@ def flat_option_dialog(options, heading):
 
     root.start()
     return result[0]
-
-def term_variable_workaround():
-    term = os.environ.get("TERM")
-    if term in ("xterm", "screen"):
-        # These are values that py-cui cannot work with, so set it to xterm-256color
-        os.environ.putenv("TERM", "xterm-256color")
 
 def hierarchical_option_dialog(options, displaynames, heading_left, heading_right):
     '''
@@ -77,9 +78,13 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
         right_menu.clear()
         right_menu.add_item_list(options_enumerated[left_idx[0]][1][1])
         root.move_focus(right_menu)
+        left_menu.set_selected_color(py_cui.WHITE_ON_BLUE)
+        right_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
 
     def navigate_to_left():
         root.move_focus(left_menu)
+        left_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
+        right_menu.set_selected_color(py_cui.WHITE_ON_BLACK)
 
     def return_entry():
         right_idx = right_menu.get_selected_item_index()
@@ -97,7 +102,7 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
     right_menu = root.add_scroll_menu(heading_right, 0, 1)
     right_menu.add_item_list(options[0][1])
     right_menu.set_color(py_cui.WHITE_ON_BLACK)
-    right_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
+    right_menu.set_selected_color(py_cui.WHITE_ON_BLACK)
     right_menu.add_key_command(py_cui.keys.KEY_LEFT_ARROW, navigate_to_left)
     right_menu.add_key_command(py_cui.keys.KEY_BACKSPACE, navigate_to_left)
     right_menu.add_key_command(py_cui.keys.KEY_ENTER, return_entry)

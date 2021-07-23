@@ -1,4 +1,5 @@
 import csv
+from lssh import xdg_compat
 
 def convert_field(value):
     if value == "*":
@@ -16,3 +17,8 @@ def load(filename):
             return [convert_row(row) for row in reader]
     except FileNotFoundError:
         return []
+
+def load_default_paths():
+    global_path = "/etc/lssh/remotecommand-whitelist.csv"
+    local_path = xdg_compat.config_home() / "lssh" / "remotecommand-whitelist.csv"
+    return load(global_path) + load(local_path)

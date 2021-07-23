@@ -24,7 +24,8 @@ def find_substrings():
         if option_val:
             option_val = False
         elif part.startswith('-'):
-            option_val = part in ('--timestamp', '--load-from')
+            # List of options that consume a value
+            option_val = part in ('--timestamp', '--load-from', '--validate')
         else:
             substrings.append(part)
     if len(substrings) > 0:
@@ -85,7 +86,8 @@ def main(hosts_dir):
     if previous_arg == '--timestamp':
         # timestamp completion
         choices = timestamp_completions(find_substrings())
-    elif previous_arg == '--load-from':
+    elif previous_arg in ('--load-from', '--validate'):
+        # file path completion
         from shlex import quote
         from subprocess import run
         from sys import exit
@@ -93,7 +95,7 @@ def main(hosts_dir):
         exit(run(["bash", "-c", compgen_cmd]).returncode)
     elif current_arg.startswith('-'):
         # option completion
-        choices = ['--help', '--load-from', '--replay', '--timestamp', '--update-hosts', '--verbose', '--version']
+        choices = ['--help', '--load-from', '--replay', '--timestamp', '--update-hosts', '--validate', '--verbose', '--version']
     else:
         # substring completion
         try:

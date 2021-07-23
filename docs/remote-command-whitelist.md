@@ -8,13 +8,21 @@ To allow the `RemoteCommand` option, you need to specify a whitelist of allowed 
 |---|
 | This whitelist does not restrict users from executing commands on the server. It restricts the central ssh config from executing commands automatically. |
 
-The whitelist is a list of rules where each rule has three fields: `user`, `hostname`, `command`.
+The whitelist is a csv file (one rule per row) with the columns: `user`, `hostname`, `command`.
 
 |field|content|
 |--|--|
 |`user`|The remote username this rule applies for. May be `None` to allow the command for every target user.|
 |`hostname`|The dns name of the target host. (not the host alias, if the `HostName` config is specified) May be `None` to allow the command on every target host.|
 |`command`|The base command (command without options) that is allowed. For example, to base command of `ls -al` is just `ls`.|
+
+There are two locations, where this csv file is loaded from. (If both exist, they are combined.)
+
+- `/etc/lssh/remotecommand-whitelist.csv`
+- `~/.config/lssh/remotecommand-whitelist.csv`  
+  (If the environment variable `XDG_CONFIG_HOME` is set, `$XDG_CONFIG_HOME/lssh/remotecommand-whitelist.csv` is used instead.)
+
+Note that lssh might run as root when updating the configuration, depending on your setup. In this case, the user-specific config file will not be read.
 
 ## Example
 
@@ -30,14 +38,6 @@ Host examplehost
 ```
 
 Now a whitelist is needed on every lssh installation, otherwise lssh will refuse to import the above configuration.
-
-|user|hostname|command|
-|---|---|---|
-|root|example.com|ls|
-
-## Whitelist in csv file
-
-When installing lssh using the `debian-systemwide-install` script, you can manage the whitelist in `/etc/lssh/remotecommand-whitelist.csv`. The same setup is also possible when installing manually, see [install-manually.md](./install-manually.md).
 
 Example content of this csv file:
 
