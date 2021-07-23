@@ -108,11 +108,15 @@ complete -o filenames -C 'lssh __complete__' lssh
 
 ## General first proxy
 
-You may specify a global proxy machine in the ssh client configuration. This proxy will always be used as a first connection step to the target machine.
+You may specify a global proxy machine in the lssh executable. This proxy will always be used as a first connection step to the target machine.
 
-To activate the proxy, add the settings using the following template below the include-instruction that you put in your ssh client configuration file:
+To activate the proxy, replace the line `main.main(...)` at the end of the lssh executable file with the following template:
 
+```python
+options = {
+    "general_proxy": "example.com",
+}
+main.main(hosts_dir, update_hosts, attributes=options)
 ```
-Match originalhost !example.com,*
-ProxyJump example.com
-```
+
+Replace `example.com` with your actual proxy host you want to use.
