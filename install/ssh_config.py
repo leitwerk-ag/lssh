@@ -45,12 +45,8 @@ def replace_lssh_config_section(lines):
         save_config_lines(new)
     return len(begin_idx) == 1
 
-def add_section(proxy=None):
-    if proxy is None:
-        proxy_line = []
-    else:
-        proxy_line = ["Match originalhost !" + proxy + ",*", "ProxyJump " + proxy]
-    lines = [lssh_begin_line, "Host *", lssh_include_entry] + proxy_line + [lssh_end_line]
+def add_section():
+    lines = [lssh_begin_line, "Host *", lssh_include_entry, lssh_end_line]
     replace_lssh_config_section(lines)
 
 def remove_section():

@@ -64,20 +64,21 @@ def create_recording_directory(hostname):
             except FileExistsError:
                 pass
 
-def main(hosts_dir, update_hosts):
+def main(hosts_dir, update_hosts, attributes):
     args = cli_args.parse_args()
 
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
+    general_proxy = None if "general_proxy" not in attributes else attributes["general_proxy"]
     if args.version:
         print("lssh version dev")
     elif args.validate is not None:
-        hostlist.validate_config(args.validate)
+        hostlist.validate_config(args.validate, general_proxy)
     elif args.update:
         update_hosts()
     elif args.load is not None:
-        hostlist.import_new_config(args.load, hosts_dir)
+        hostlist.import_new_config(args.load, hosts_dir, general_proxy)
     elif args.replay or args.time is not None:
         if substring is None:
             all_substrings = []

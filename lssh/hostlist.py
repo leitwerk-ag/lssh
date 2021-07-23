@@ -96,7 +96,7 @@ def load_config(path, suppress_errors=False):
 
     return (entries, displaynames)
 
-def import_new_config(srcpath, dstpath):
+def import_new_config(srcpath, dstpath, general_proxy):
     srcpath = pathlib.Path(srcpath)
     dstpath = pathlib.Path(dstpath)
     srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
@@ -111,11 +111,12 @@ def import_new_config(srcpath, dstpath):
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
-        file_errors, content = config_validation.check_ssh_config_safety(content, cmd_whitelist)
+        file_errors, content = config_validation.transform_config(content, cmd_whitelist, general_proxy)
         if len(file_errors) > 0:
             error_files.add(name)
             errors += [name + ": " + e for e in file_errors]
-        contents[name] = "".join([line + "\n" for line in content])
+        else:
+            contents[name] = "".join([line + "\n" for line in content])
     if len(errors) > 0:
         for error in errors:
             print(error, file=sys.stderr)
@@ -147,7 +148,7 @@ def import_new_config(srcpath, dstpath):
         exit(1)
     exit(0)
 
-def validate_config(srcdir):
+def validate_config(srcdir, general_proxy):
     srcpath = pathlib.Path(srcdir)
     srcfiles = [name for name in os.listdir(srcpath) if name.endswith(".txt") and os.path.isfile(srcpath / name)]
     srcfiles.sort()
@@ -158,7 +159,7 @@ def validate_config(srcdir):
     for name in srcfiles:
         with open(srcpath / name, "r") as f:
             content = f.read()
-        file_errors, _ = config_validation.check_ssh_config_safety(content, cmd_whitelist)
+        file_errors, _ = config_validation.transform_config(content, cmd_whitelist, general_proxy)
         errors += [name + ": " + e for e in file_errors]
     if len(errors) > 0:
         for error in errors:
