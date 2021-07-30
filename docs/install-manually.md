@@ -107,6 +107,8 @@ Use the following template for an entry in your crontab:
 
 Replace `<bin>` with your `$BIN` directory. An absolute path to lssh is often needed because cronjobs run with a minimalistic `$PATH` environment variable.
 
+The given example runs the host-update command every hour on minute 42 (0:42, 1:42, 2:42, ..., 23:42)
+
 ## Setup bash completion
 
 Put the following instruction into a bash startup file for example `~/.bashrc`
