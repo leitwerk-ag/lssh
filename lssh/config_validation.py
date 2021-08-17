@@ -1,4 +1,4 @@
-import re, shlex
+import os, re, shlex, subprocess, tempfile
 
 instruction_whitelist = {
     'addkeystoagent',
@@ -209,6 +209,30 @@ class HostSection():
     def get_lines(self):
         return self.__lines
 
+def ssh_check_validity(content, context):
+    fd, path = tempfile.mkstemp()
+    f = open(fd, "w")
+    try:
+        with f:
+            f.write(content)
+        ssh_result = subprocess.run(["ssh", "-F", path, "-G", "localhost"], capture_output=True)
+        error_lines = ssh_result.stderr.decode().split("\n")
+        # remove the last line, that is most likely empty
+        if error_lines[-1] == "":
+            error_lines = error_lines[0:-1]
+        def remove_prefix(line):
+            if line.startswith(path + ": "):
+                return line[len(path)+2:]
+            elif line.startswith(path + " "):
+                return line[len(path)+1:]
+            return line
+        error_lines = [remove_prefix(line) for line in error_lines]
+        if ssh_result.returncode != 0 and len(error_lines) == 0:
+            error_lines.append("ssh failed to validate the file (exit " + str(ssh_result.returncode) + ") but did not produce error output")
+        context["errors"] += error_lines
+    finally:
+        os.unlink(path)
+
 def transform_config(content, cmd_whitelist, general_proxy):
     '''
     Check if the given ssh config file content is valid and safe.
@@ -262,6 +286,9 @@ def transform_config(content, cmd_whitelist, general_proxy):
                 context["errors"].append("Line " + str(line_nr) + " could not be parsed by the validator.")
         line_nr += 1
     cur_section.finalize()
+
+    if len(context["errors"]) == 0:
+        ssh_check_validity(content, context)
 
     if len(context["errors"]) > 0:
         result = None
