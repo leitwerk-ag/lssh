@@ -72,7 +72,7 @@ def main(hosts_dir, update_hosts, attributes):
     ensure_no_usernames(additional_substrings)
     general_proxy = None if "general_proxy" not in attributes else attributes["general_proxy"]
     if args.version:
-        print("lssh version 0.5.0")
+        print("lssh version 0.5.1")
     elif args.validate is not None:
         hostlist.validate_config(args.validate, general_proxy)
     elif args.update:
