@@ -215,7 +215,7 @@ def ssh_check_validity(content, context):
     try:
         with f:
             f.write(content)
-        ssh_result = subprocess.run(["ssh", "-F", path, "-G", "localhost"], capture_output=True)
+        ssh_result = subprocess.run(["ssh", "-TF", path, "-G", "localhost"], capture_output=True)
         error_lines = ssh_result.stderr.decode().split("\n")
         # remove the last line, that is most likely empty
         if error_lines[-1] == "":
