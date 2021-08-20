@@ -1,5 +1,5 @@
 import itertools, os, shlex, subprocess, sys, time
-from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog, xdg_compat
+from lssh import cli_args, hostlist, xdg_compat
 
 def group_options_by_customer(hosts):
     map_customer = {}
@@ -80,6 +80,7 @@ def main(hosts_dir, update_hosts, attributes):
     elif args.load is not None:
         hostlist.import_new_config(args.load, hosts_dir, general_proxy)
     elif args.replay or args.time is not None:
+        from lssh import replay
         if substring is None:
             all_substrings = []
         else:
@@ -130,6 +131,7 @@ def select_host(substring, additional_substrings, hosts_dir):
     elif len(matched_hosts) == 1:
         selected = list(matched_hosts.keys())[0]
     else:
+        from lssh import tui_dialog
         options = group_options_by_customer(matched_hosts)
         choice = tui_dialog.hierarchical_option_dialog(options, displaynames, 'select customer', 'select host')
         if choice is None:
@@ -140,6 +142,7 @@ def select_host(substring, additional_substrings, hosts_dir):
     return selected, proxy_chain
 
 def connect(args, user, substring, additional_substrings, hosts_dir):
+    from lssh import ssh_agent
     selected, proxy_chain = select_host(substring, additional_substrings, hosts_dir)
 
     options_dict = vars(args)
