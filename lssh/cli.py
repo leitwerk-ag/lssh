@@ -1,4 +1,4 @@
-import itertools, os, shlex, subprocess, sys, time
+import itertools, os, platform, shlex, subprocess, sys, time
 from lssh import cli_args, hostlist, xdg_compat
 
 def group_options_by_customer(hosts):
@@ -170,7 +170,10 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
     if rec_dir is not None:
-        final_command = ['script', '-et'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
+        if platform.system() == "Darwin":
+            final_command = ['script', '-r', str(rec_dir / 'output')] + command
+        else:
+            final_command = ['script', '-et'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
     else:
         final_command = command
     try:
