@@ -1,4 +1,4 @@
-import re, os, subprocess, sys
+import re, os, platform, subprocess, sys
 from lssh import tui_dialog, xdg_compat
 
 def name_matches(name, substrings, timestamp):
@@ -23,7 +23,10 @@ def replay_recording(dirname):
     recording_path = xdg_compat.data_home() / 'lssh' / 'recordings' / dirname
     timing_file = str(recording_path / 'timing')
     output_file = str(recording_path / 'output')
-    command = ['scriptreplay', '-m', '2', '-t', timing_file, output_file]
+    if platform.system() == "Darwin":
+        command = ['script', '-p', output_file]
+    else:
+        command = ['scriptreplay', '-m', '2', '-t', timing_file, output_file]
     sys.exit(subprocess.run(command).returncode)
 
 def replay(substrings, timestamp):

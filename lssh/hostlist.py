@@ -1,6 +1,6 @@
 import csv, json, os, pathlib, re, sys
 
-from lssh import config_validation, xdg_compat
+from lssh import config_validation
 from lssh.command_whitelist import load_default_paths
 from lssh.tabcomplete import host_cache_path
 

@@ -1,5 +1,5 @@
-import itertools, os, shlex, subprocess, sys, time
-from lssh import cli_args, hostlist, replay, ssh_agent, tui_dialog, xdg_compat
+import itertools, os, platform, shlex, subprocess, sys, time
+from lssh import cli_args, hostlist, xdg_compat
 
 def group_options_by_customer(hosts):
     map_customer = {}
@@ -72,7 +72,7 @@ def main(hosts_dir, update_hosts, attributes):
     ensure_no_usernames(additional_substrings)
     general_proxy = None if "general_proxy" not in attributes else attributes["general_proxy"]
     if args.version:
-        print("lssh version 0.5.1")
+        print("lssh version 0.5.2")
     elif args.validate is not None:
         hostlist.validate_config(args.validate, general_proxy)
     elif args.update:
@@ -80,6 +80,7 @@ def main(hosts_dir, update_hosts, attributes):
     elif args.load is not None:
         hostlist.import_new_config(args.load, hosts_dir, general_proxy)
     elif args.replay or args.time is not None:
+        from lssh import replay
         if substring is None:
             all_substrings = []
         else:
@@ -130,6 +131,7 @@ def select_host(substring, additional_substrings, hosts_dir):
     elif len(matched_hosts) == 1:
         selected = list(matched_hosts.keys())[0]
     else:
+        from lssh import tui_dialog
         options = group_options_by_customer(matched_hosts)
         choice = tui_dialog.hierarchical_option_dialog(options, displaynames, 'select customer', 'select host')
         if choice is None:
@@ -140,6 +142,7 @@ def select_host(substring, additional_substrings, hosts_dir):
     return selected, proxy_chain
 
 def connect(args, user, substring, additional_substrings, hosts_dir):
+    from lssh import ssh_agent
     selected, proxy_chain = select_host(substring, additional_substrings, hosts_dir)
 
     options_dict = vars(args)
@@ -167,7 +170,10 @@ def connect(args, user, substring, additional_substrings, hosts_dir):
     if args.verbose is not None:
         print("executing command: " + ssh_commandline)
     if rec_dir is not None:
-        final_command = ['script', '-et'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
+        if platform.system() == "Darwin":
+            final_command = ['script', '-r', str(rec_dir / 'output')] + command
+        else:
+            final_command = ['script', '-et'+str(rec_dir / 'timing'), rec_dir / 'output', '-c', ssh_commandline]
     else:
         final_command = command
     try:

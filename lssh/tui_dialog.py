@@ -92,12 +92,17 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
         result[0] = (left_idx[0], right_idx)
         root.stop()
 
+    def quit():
+        root.stop()
+
     left_menu = root.add_scroll_menu(heading_left, 0, 0)
     left_menu.add_item_list([heading_display(entry[1][0]) for entry in options_enumerated])
     left_menu.set_color(py_cui.WHITE_ON_BLACK)
     left_menu.set_selected_color(py_cui.BLACK_ON_WHITE)
     left_menu.add_key_command(py_cui.keys.KEY_ENTER, navigate_to_right)
     left_menu.add_key_command(py_cui.keys.KEY_RIGHT_ARROW, navigate_to_right)
+    left_menu.add_key_command(py_cui.keys.KEY_TAB, navigate_to_right)
+    left_menu.add_key_command(py_cui.keys.KEY_Q_LOWER, quit)
 
     right_menu = root.add_scroll_menu(heading_right, 0, 1)
     right_menu.add_item_list(options[0][1])
@@ -106,6 +111,7 @@ def hierarchical_option_dialog(options, displaynames, heading_left, heading_righ
     right_menu.add_key_command(py_cui.keys.KEY_LEFT_ARROW, navigate_to_left)
     right_menu.add_key_command(py_cui.keys.KEY_BACKSPACE, navigate_to_left)
     right_menu.add_key_command(py_cui.keys.KEY_ENTER, return_entry)
+    right_menu.add_key_command(py_cui.keys.KEY_Q_LOWER, quit)
 
     root.move_focus(left_menu)
 
