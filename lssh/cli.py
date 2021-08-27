@@ -64,15 +64,38 @@ def create_recording_directory(hostname):
             except FileExistsError:
                 pass
 
+def check_for_conflicting_args(args):
+    mode = [None] # array to allow access inside of the function add_mode
+    specifying_arg = [None]
+    def add_mode(new_mode, arg):
+        if mode[0] is not None and mode[0] != new_mode:
+            print("The arguments " + specifying_arg[0] + " and " + arg + " cannot be combined", file=sys.stderr)
+            exit(1)
+        mode[0] = new_mode
+        specifying_arg[0] = arg
+    if args.version:
+        add_mode("version", "--version")
+    if args.validate is not None:
+        add_mode("validate", "--validate")
+    if args.update:
+        add_mode("update", "--update-hosts")
+    if args.load is not None:
+        add_mode("load", "--load-from")
+    if args.replay:
+        add_mode("replay", "--replay")
+    if args.time is not None:
+        add_mode("replay", "--timestamp")
+
 def main(hosts_dir, update_hosts, attributes):
     args = cli_args.parse_args()
+    check_for_conflicting_args(args)
 
     user, substring = split_user_from_substring(args.substring)
     additional_substrings = args.additional_substrings
     ensure_no_usernames(additional_substrings)
     general_proxy = None if "general_proxy" not in attributes else attributes["general_proxy"]
     if args.version:
-        print("lssh version 0.5.2")
+        print("lssh version 0.5.3")
     elif args.validate is not None:
         hostlist.validate_config(args.validate, general_proxy)
     elif args.update:
