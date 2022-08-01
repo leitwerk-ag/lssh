@@ -17,7 +17,7 @@ def group_options_by_customer(hosts):
     return [make_option(c) for c in customers]
 
 def matches_substring(host, substring):
-    if substring in host.display_name:
+    if str.lower(substring) in str.lower(host.display_name):
         return True
     for keyword in host.keywords:
         if substring in keyword:
