@@ -6,7 +6,7 @@ def term_variable_workaround():
     term = os.environ.get("TERM")
     if term in ("xterm", "screen"):
         # These are values that py-cui cannot work with, so set it to xterm-256color
-        os.environ.putenv("TERM", "xterm-256color")
+        os.putenv("TERM", "xterm-256color")
 
 def flat_option_dialog(options, heading):
     '''
