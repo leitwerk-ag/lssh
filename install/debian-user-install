@@ -148,7 +148,7 @@ else:
 ## # Setup tab-completion
 complete_file = expanduser("~")+"/.bashrc"
 print("Writing bash completion instructions to " + complete_file + " ...")
-with open(complete_file, "w") as f:
+with open(complete_file, "a") as f:
    f.write("complete -o filenames -C 'lssh __complete__' lssh\n")
 
 ## # Crontab entry
