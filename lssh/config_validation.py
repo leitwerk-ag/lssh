@@ -261,7 +261,7 @@ def transform_config(content, cmd_whitelist, general_proxy):
             # line just contains a comment
             cur_section.add_neutral_line(line)
         else:
-            m = re.match('^(\\s*)([a-zA-Z]+)(\\s+)(\S.*)$', line)
+            m = re.match('^(\\s*)([a-zA-Z]+)(\\s+)(\\S.*)$', line)
             if m:
                 # found a setting
                 ws_before = m.group(1)
