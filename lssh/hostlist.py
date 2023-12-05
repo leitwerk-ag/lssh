@@ -37,7 +37,7 @@ def load_config(path, suppress_errors=False):
     cur_host = [None] # array is used to make the value mutable for the handle_line function
     file_displayname = [None]
     def handle_line(line, customer, file_keywords, file_hosts):
-        m = re.match(r'^\s*Host\s+([\S]+)\s*$', line, re.IGNORECASE)
+        m = re.match('^\\s*Host\\s+([\\S]+)\\s*$', line, re.IGNORECASE)
         if m:
             hostname = m.group(1)
             if '*' not in hostname and '?' not in hostname:
@@ -45,10 +45,10 @@ def load_config(path, suppress_errors=False):
                 if hostname not in entries:
                     entries[hostname] = cur_host[0]
                 file_hosts.append(cur_host[0])
-        m = re.match(r'^\s*proxyjump\s+([\S]+)\s*$', line, re.IGNORECASE)
+        m = re.match('^\\s*proxyjump\\s+([\\S]+)\\s*$', line, re.IGNORECASE)
         if m and cur_host[0] is not None and cur_host[0].jumphost is None:
             cur_host[0].jumphost = m.group(1)
-        m = re.match(r'^\s*#\s*lssh:(file)?keywords\s(.*)$', line, re.IGNORECASE)
+        m = re.match('^\\s*#\\s*lssh:(file)?keywords\\s(.*)$', line, re.IGNORECASE)
         if m:
             keywords_str = m.group(2)
             keywords = {k.strip() for k in keywords_str.split(',')}
@@ -58,10 +58,10 @@ def load_config(path, suppress_errors=False):
             elif cur_host[0] is not None:
                 # keywords only for this host
                 cur_host[0].keywords |= keywords
-        m = re.match(r'^\s*#\s*lssh:displayname\s+(\S.*)$', line, re.IGNORECASE)
+        m = re.match('^\\s*#\\s*lssh:displayname\\s+(\\S.*)$', line, re.IGNORECASE)
         if m and file_displayname[0] is None:
             file_displayname[0] = m.group(1)
-        m = re.match(r'^\s*#\s*lssh:assignedcustomer\s+(\S.*)$', line, re.IGNORECASE)
+        m = re.match('^\\s*#\\s*lssh:assignedcustomer\\s+(\\S.*)$', line, re.IGNORECASE)
         if m and cur_host[0] is not None:
             name = m.group(1)
             # allow both: with or without file ending .txt
