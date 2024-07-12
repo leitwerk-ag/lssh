@@ -19,6 +19,10 @@ A central git repository contains the ssh configuration for all your hosts and w
 
 ## Install
 
+### Requirements
+
+The following Python packages have to be installed via pip or or package manager: xgd, cui
+
 ### Debian
 
 For the debian linux distribution, there is an install-script that installs lssh for all users and must be run as root:  
